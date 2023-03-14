@@ -27,10 +27,10 @@ func (app *Config) routes() http.Handler {
 			httpSwagger.URL("doc.json"), // The url pointing to API definition
 		))
 
-		mux.Get("/v1/projects", app.BaseHandler.ProjectRead)
+		mux.Get("/v1/projects/{projectID}", app.BaseHandler.ProjectRead)
 		mux.Post("/v1/projects", app.BaseHandler.ProjectCreate)
-		mux.Patch("/v1/projects", app.BaseHandler.ProjectUpdate)
-		mux.Delete("/v1/projects", app.BaseHandler.ProjectDelete)
+		mux.Patch("/v1/projects/{projectID}", app.BaseHandler.ProjectUpdate)
+		mux.Delete("/v1/projects/{projectID}", app.BaseHandler.ProjectDelete)
 	})
 
 	return mux

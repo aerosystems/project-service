@@ -8,8 +8,8 @@ type Project struct {
 	Name       string    `json:"name" gorm:"<-"`
 	Token      string    `json:"token" gorm:"<-"`
 	AccessTime string    `json:"access_time" gorm:"<-"`
-	CreatedAt  time.Time `json:"created_at" gorm:"<-"`
-	UpdatedAt  time.Time `json:"updated_at" gorm:"<-"`
+	CreatedAt  time.Time `json:"_" gorm:"<-"`
+	UpdatedAt  time.Time `json:"_" gorm:"<-"`
 }
 
 type ProjectRepository interface {
