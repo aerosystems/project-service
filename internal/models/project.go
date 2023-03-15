@@ -12,9 +12,16 @@ type Project struct {
 	UpdatedAt  time.Time `json:"_" gorm:"<-"`
 }
 
+type ProjectRequest struct {
+	UserID     int    `json:"user_id" gorm:"<-"`
+	Name       string `json:"name" gorm:"<-"`
+	AccessTime string `json:"access_time" gorm:"<-"`
+}
+
 type ProjectRepository interface {
 	FindByID(ID int) (*Project, error)
 	FindByToken(token string) (*Project, error)
+	FindByUserID(UserID int) (*Project, error)
 	Create(project *Project) error
 	Update(project *Project) error
 	Delete(project *Project) error
