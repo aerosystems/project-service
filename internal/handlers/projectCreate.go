@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
 	"gorm.io/gorm"
 	"net/http"
+	"time"
 )
 
 func (h *BaseHandler) ProjectCreate(w http.ResponseWriter, r *http.Request) {
@@ -15,11 +17,36 @@ func (h *BaseHandler) ProjectCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if requestPayload.UserID == 0 {
+		err := errors.New("claim UserID does not be empty")
+		_ = WriteResponse(w, http.StatusBadRequest, NewErrorPayload(400103, err.Error(), err))
+		return
+	}
+
+	if requestPayload.Name == "" {
+		err := errors.New("claim Name does not be empty")
+		_ = WriteResponse(w, http.StatusBadRequest, NewErrorPayload(400104, err.Error(), err))
+		return
+	}
+
+	if requestPayload.AccessTime.IsZero() {
+		err := errors.New("claim Access Time does not be empty")
+		_ = WriteResponse(w, http.StatusBadRequest, NewErrorPayload(400104, err.Error(), err))
+		return
+	}
+
+	if requestPayload.AccessTime.Before(time.Now()) {
+		err := errors.New("claim Access Time should be more then NOW")
+		_ = WriteResponse(w, http.StatusBadRequest, NewErrorPayload(400102, err.Error(), err))
+		return
+	}
+
 	project, err := h.projectRepo.FindByUserID(requestPayload.UserID)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not compare new Project with projects in storage", err))
 		return
 	}
+
 	if project != nil {
 		if project.Name == requestPayload.Name {
 			err := fmt.Errorf("project with claim Name %s already exists", requestPayload.Name)

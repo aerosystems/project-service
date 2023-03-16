@@ -1,11 +1,8 @@
 package helpers
 
 import (
-	"crypto/md5"
-	"encoding/hex"
+	"crypto/sha256"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
-	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -13,15 +10,7 @@ import (
 
 // GenerateToken returns a unique token
 func GenerateToken() string {
-	rand.Seed(time.Now().UnixNano())
-	hash, err := bcrypt.GenerateFromPassword([]byte(strconv.Itoa(rand.Int())), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Example rand int: ", strconv.Itoa(rand.Int()))
-	fmt.Println("Hash to store:", string(hash))
-
-	hasher := md5.New()
-	hasher.Write(hash)
-	return hex.EncodeToString(hasher.Sum(nil))
+	rand.Seed(time.Now().Unix())
+	sum := sha256.Sum256([]byte(strconv.Itoa(rand.Int())))
+	return fmt.Sprintf("%x", sum)
 }
