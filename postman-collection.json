@@ -12,7 +12,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8082/v1/projects",
+					"raw": "http://localhost:8082/v1/projects/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -20,7 +20,8 @@
 					"port": "8082",
 					"path": [
 						"v1",
-						"projects"
+						"projects",
+						"1"
 					]
 				}
 			},
@@ -31,6 +32,15 @@
 			"request": {
 				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": 1,\n    \"name\": \"bla-bla\",\n    \"access_time\": \"2024-03-03T08:15:59Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
 					"raw": "http://localhost:8082/v1/projects",
 					"protocol": "http",
@@ -51,8 +61,17 @@
 			"request": {
 				"method": "PATCH",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"bla-bla\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "http://localhost:8082/v1/projects",
+					"raw": "http://localhost:8082/v1/projects/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -60,7 +79,8 @@
 					"port": "8082",
 					"path": [
 						"v1",
-						"projects"
+						"projects",
+						"1"
 					]
 				}
 			},
@@ -72,7 +92,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8082/v1/projects",
+					"raw": "http://localhost:8082/v1/projects/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -80,7 +100,8 @@
 					"port": "8082",
 					"path": [
 						"v1",
-						"projects"
+						"projects",
+						"1"
 					]
 				}
 			},

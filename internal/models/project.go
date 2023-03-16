@@ -1,21 +1,23 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Project struct {
 	ID         int       `json:"id" gorm:"<-"`
 	UserID     int       `json:"user_id" gorm:"<-"`
 	Name       string    `json:"name" gorm:"<-"`
-	Token      string    `json:"token" gorm:"<-"`
-	AccessTime string    `json:"access_time" gorm:"<-"`
+	Token      string    `json:"_" gorm:"<-"`
+	AccessTime time.Time `json:"access_time" gorm:"<-"`
 	CreatedAt  time.Time `json:"_" gorm:"<-"`
 	UpdatedAt  time.Time `json:"_" gorm:"<-"`
 }
 
 type ProjectRequest struct {
-	UserID     int    `json:"user_id" gorm:"<-"`
-	Name       string `json:"name" gorm:"<-"`
-	AccessTime string `json:"access_time" gorm:"<-"`
+	UserID     int       `json:"user_id" gorm:"<-"`
+	Name       string    `json:"name" gorm:"<-"`
+	AccessTime time.Time `json:"access_time" gorm:"<-"`
 }
 
 type ProjectRepository interface {
