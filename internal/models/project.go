@@ -15,9 +15,9 @@ type Project struct {
 }
 
 type ProjectRequest struct {
-	UserID     int       `json:"user_id" gorm:"<-"`
-	Name       string    `json:"name" gorm:"<-"`
-	AccessTime time.Time `json:"access_time" gorm:"<-"`
+	UserID     int       `json:"user_id"`
+	Name       string    `json:"name"`
+	AccessTime time.Time `json:"access_time"`
 }
 
 type ProjectRepository interface {
