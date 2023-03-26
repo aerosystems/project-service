@@ -20,24 +20,32 @@ definitions:
     type: object
   models.Project:
     properties:
-      _:
-        type: string
       access_time:
+        example: "2027-03-03T08:15:00Z"
         type: string
       id:
+        example: 66
         type: integer
       name:
+        example: bla-bla-bla.com
+        type: string
+      token:
+        example: 38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f
         type: string
       user_id:
+        example: 666
         type: integer
     type: object
   models.ProjectRequest:
     properties:
       access_time:
+        example: "2027-03-03T08:15:00Z"
         type: string
       name:
+        example: bla-bla-bla.com
         type: string
       user_id:
+        example: 66
         type: integer
     type: object
 host: localhost:8082

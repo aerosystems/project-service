@@ -339,20 +339,25 @@ const docTemplate = `{
         "models.Project": {
             "type": "object",
             "properties": {
-                "_": {
-                    "type": "string"
-                },
                 "access_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2027-03-03T08:15:00Z"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 66
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "bla-bla-bla.com"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f"
                 },
                 "user_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 666
                 }
             }
         },
@@ -360,13 +365,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "access_time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2027-03-03T08:15:00Z"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "bla-bla-bla.com"
                 },
                 "user_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 66
                 }
             }
         }
