@@ -11,6 +11,20 @@ import (
 	"time"
 )
 
+// ProjectUpdate godoc
+// @Summary update project by Project ID
+// @Tags projects
+// @Accept  json
+// @Produce application/json
+// @Param	projectID	path	string	true "Project ID"
+// @Param comment body models.Project true "raw request body"
+// @Param Authorization header string true "should contain Access Token, with the Bearer started"
+// @Success 200 {object} Response{data=models.Project}
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /projects/{projectID} [patch]
 func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 	projectID, err := strconv.Atoi(chi.URLParam(r, "projectID"))
 	if err != nil {
