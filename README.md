@@ -1,6 +1,6 @@
 # project-service
 
-🍕 This service is responsible for managing user Projects
+🍕 A part of microservice infrastructure, who responsible for managing user Projects
 
 📎 Service has used lightweight HTTP Router [Chi](https://github.com/go-chi/chi), idiomatic ORM library for management PostgreSQL [GORM](https://gorm.io/)
 

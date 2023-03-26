@@ -1,0 +1,236 @@
+basePath: /v1
+definitions:
+  handlers.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      data: {}
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  handlers.Response:
+    properties:
+      data: {}
+      error:
+        type: boolean
+      message:
+        type: string
+    type: object
+  models.Project:
+    properties:
+      _:
+        type: string
+      access_time:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.ProjectRequest:
+    properties:
+      access_time:
+        type: string
+      name:
+        type: string
+      user_id:
+        type: integer
+    type: object
+host: localhost:8082
+info:
+  contact:
+    name: Artem Kostenko
+    url: https://github.com/aerosystems
+  description: A part of microservice infrastructure, who responsible for managing
+    user Projects
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Project Service
+  version: "1.0"
+paths:
+  /projects:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: raw request body
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProjectRequest'
+      - description: should contain Access Token, with the Bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Project'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: create project
+      tags:
+      - projects
+  /projects/{projectID}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectID
+        required: true
+        type: string
+      - description: should contain Access Token, with the Bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: delete project by Project ID
+      tags:
+      - projects
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectID
+        required: true
+        type: string
+      - description: should contain Access Token, with the Bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Project'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: get project by Project ID
+      tags:
+      - projects
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project ID
+        in: path
+        name: projectID
+        required: true
+        type: string
+      - description: raw request body
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Project'
+      - description: should contain Access Token, with the Bearer started
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Project'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: update project by Project ID
+      tags:
+      - projects
+swagger: "2.0"

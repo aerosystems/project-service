@@ -9,6 +9,18 @@ import (
 	"time"
 )
 
+// ProjectCreate godoc
+// @Summary create project
+// @Tags projects
+// @Accept  json
+// @Produce application/json
+// @Param comment body models.ProjectRequest true "raw request body"
+// @Param Authorization header string true "should contain Access Token, with the Bearer started"
+// @Success 200 {object} Response{data=models.Project}
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /projects [post]
 func (h *BaseHandler) ProjectCreate(w http.ResponseWriter, r *http.Request) {
 	var requestPayload models.ProjectRequest
 
