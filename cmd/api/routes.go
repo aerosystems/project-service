@@ -12,21 +12,33 @@ import (
 func (app *Config) routes() http.Handler {
 	mux := chi.NewRouter()
 
-	mux.Group(func(mux chi.Router) {
-		// Public routes
-		mux.Use(cors.Handler(cors.Options{
-			AllowedOrigins:   []string{"*"},
-			AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Content-Type"},
-			ExposedHeaders:   []string{"Link"},
-			AllowCredentials: true,
-			MaxAge:           300,
-		}))
-		mux.Use(middleware.Heartbeat("/ping"))
+	mux.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Content-Type"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
+	mux.Use(middleware.Heartbeat("/ping"))
+
+	// Public routes
+	mux.Group(func(mux chi.Router) {
 		mux.Get("/docs/*", httpSwagger.Handler(
 			httpSwagger.URL("doc.json"), // The url pointing to API definition
 		))
+	})
+
+	// Private routes X-API-KEY
+	mux.Group(func(mux chi.Router) {
+		mux.Use(app.XApiKeyMiddleware)
+		mux.Get("/v1/token/validate", app.BaseHandler.ValidateToken)
+	})
+
+	// Private routes
+	mux.Group(func(mux chi.Router) {
+		mux.Use(app.TokenAuthMiddleware)
 
 		mux.Get("/v1/projects/{projectID}", app.BaseHandler.ProjectRead)
 		mux.Post("/v1/projects", app.BaseHandler.ProjectCreate)

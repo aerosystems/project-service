@@ -4,16 +4,10 @@ import (
 	"fmt"
 	"github.com/aerosystems/project-service/internal/handlers"
 	"github.com/aerosystems/project-service/internal/repository"
-	"github.com/aerosystems/project-service/pkg/mygorm"
+	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"log"
 	"net/http"
 )
-
-const webPort = "80"
-
-type Config struct {
-	BaseHandler *handlers.BaseHandler
-}
 
 // @title Project Service
 // @version 1.0
@@ -25,22 +19,29 @@ type Config struct {
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
+// @securityDefinitions.apikey X-API-KEY
+// @in header
+// @name X-API-KEY
+// @description Should contain Token, digits and letters, 64 symbols length
+
 // @host localhost:8082
-// @BasePath /v1
+// @BasePath /
 func main() {
-	clientGORM := mygorm.NewClient()
+	clientGORM := GormPostgres.NewClient()
 	projectRepo := repository.NewProjectRepo(clientGORM)
 
 	app := Config{
+		WebPort:     "80",
 		BaseHandler: handlers.NewBaseHandler(projectRepo),
+		ProjectRepo: projectRepo,
 	}
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", webPort),
+		Addr:    fmt.Sprintf(":%s", app.WebPort),
 		Handler: app.routes(),
 	}
 
-	log.Printf("Starting authentication end service on port %s\n", webPort)
+	log.Printf("Starting authentication end service on port %s\n", app.WebPort)
 	err := srv.ListenAndServe()
 
 	if err != nil {
