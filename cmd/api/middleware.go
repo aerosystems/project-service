@@ -15,6 +15,20 @@ import (
 	"strings"
 )
 
+func (app *Config) BasicAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, password, ok := r.BasicAuth()
+
+		if username != os.Getenv("BASIC_AUTH_DOCS_USERNAME") || password != os.Getenv("BASIC_AUTH_DOCS_PASSWORD") || !ok {
+			err := errors.New("invalid username or password")
+			_ = handlers.WriteResponse(w, http.StatusUnauthorized, handlers.NewErrorPayload(401001, "invalid username or password", err))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (app *Config) XApiKeyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := validators.ValidateXApiKey(r.Header.Get("X-API-KEY")); err != nil {
