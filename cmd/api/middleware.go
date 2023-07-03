@@ -8,6 +8,7 @@ import (
 	"github.com/aerosystems/project-service/internal/helpers"
 	AuthService "github.com/aerosystems/project-service/pkg/auth_service"
 	"github.com/aerosystems/project-service/pkg/validators"
+
 	"github.com/golang-jwt/jwt"
 	"net/http"
 	"os"
@@ -32,7 +33,7 @@ func (app *Config) XApiKeyMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (app *Config) TokenAuthMiddleware(next http.Handler) http.Handler {
+func (app *Config) TokenAuthMiddleware(next http.Handler, roles ...string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		accessToken, err := app.GetAccessTokenFromHeader(r)
@@ -58,9 +59,18 @@ func (app *Config) TokenAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), helpers.ContextKey("accessTokenClaims"), tokenClaims)
+		if len(roles) > 0 {
+			if !helpers.Contains(roles, tokenClaims.UserRole) {
+				err := errors.New("forbidden access to this resource")
+				_ = handlers.WriteResponse(w, http.StatusForbidden, handlers.NewErrorPayload(403001, "forbidden access to this resource", err))
+				return
+			}
+		}
+
+		ctx := context.WithValue(r.Context(), helpers.ContextKey("accessTokenClaimsKey"), tokenClaims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+
 }
 
 func (app *Config) GetAccessTokenFromHeader(r *http.Request) (*string, error) {

@@ -22,8 +22,13 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/projects": {
+        "/v1/projects": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -41,15 +46,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ProjectRequest"
+                            "$ref": "#/definitions/handlers.CreateProjectRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "should contain Access Token, with the Bearer started",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -83,6 +81,24 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -92,8 +108,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/projects/{projectID}": {
+        "/v1/projects/{projectID}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -111,13 +132,6 @@ const docTemplate = `{
                         "name": "projectID",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "should contain Access Token, with the Bearer started",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -151,8 +165,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
@@ -166,6 +192,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -182,13 +213,6 @@ const docTemplate = `{
                         "description": "Project ID",
                         "name": "projectID",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "should contain Access Token, with the Bearer started",
-                        "name": "Authorization",
-                        "in": "header",
                         "required": true
                     }
                 ],
@@ -211,8 +235,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
@@ -226,6 +262,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -250,15 +291,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Project"
+                            "$ref": "#/definitions/handlers.UpdateProjectRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "should contain Access Token, with the Bearer started",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -292,8 +326,26 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
@@ -306,9 +358,59 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/token/validate": {
+            "get": {
+                "security": [
+                    {
+                        "X-API-KEY": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "token"
+                ],
+                "summary": "validate token",
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "handlers.CreateProjectRequest": {
+            "type": "object",
+            "properties": {
+                "access_time": {
+                    "type": "string",
+                    "example": "2027-03-03T08:15:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "bla-bla-bla.com"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 66
+                }
+            }
+        },
         "handlers.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -316,9 +418,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {},
-                "error": {
-                    "type": "boolean"
-                },
                 "message": {
                     "type": "string"
                 }
@@ -328,11 +427,21 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {},
-                "error": {
-                    "type": "boolean"
-                },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.UpdateProjectRequest": {
+            "type": "object",
+            "properties": {
+                "access_time": {
+                    "type": "string",
+                    "example": "2027-03-03T08:15:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "bla-bla-bla.com"
                 }
             }
         },
@@ -360,32 +469,29 @@ const docTemplate = `{
                     "example": 666
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Should contain Access JWT Token, with the Bearer started",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         },
-        "models.ProjectRequest": {
-            "type": "object",
-            "properties": {
-                "access_time": {
-                    "type": "string",
-                    "example": "2027-03-03T08:15:00Z"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "bla-bla-bla.com"
-                },
-                "user_id": {
-                    "type": "integer",
-                    "example": 66
-                }
-            }
+        "X-API-KEY": {
+            "description": "Should contain Token, digits and letters, 64 symbols length",
+            "type": "apiKey",
+            "name": "X-API-KEY",
+            "in": "header"
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "1.0.5",
 	Host:             "localhost:8082",
-	BasePath:         "/v1",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Project Service",
 	Description:      "A part of microservice infrastructure, who responsible for managing user Projects",

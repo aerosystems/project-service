@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/aerosystems/project-service/internal/handlers"
+	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"log"
@@ -10,7 +11,7 @@ import (
 )
 
 // @title Project Service
-// @version 1.0
+// @version 1.0.5
 // @description A part of microservice infrastructure, who responsible for managing user Projects
 
 // @contact.name Artem Kostenko
@@ -24,10 +25,18 @@ import (
 // @name X-API-KEY
 // @description Should contain Token, digits and letters, 64 symbols length
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Should contain Access JWT Token, with the Bearer started
+
 // @host localhost:8082
 // @BasePath /
 func main() {
 	clientGORM := GormPostgres.NewClient()
+	if err := clientGORM.AutoMigrate(&models.Project{}); err != nil {
+		log.Panic(err)
+	}
 	projectRepo := repository.NewProjectRepo(clientGORM)
 
 	app := Config{

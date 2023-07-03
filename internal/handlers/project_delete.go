@@ -14,24 +14,26 @@ import (
 // @Accept  json
 // @Produce application/json
 // @Param	projectID	path	string	true "Project ID"
-// @Param Authorization header string true "should contain Access Token, with the Bearer started"
+// @Security BearerAuth
 // @Success 200 {object} Response
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
+// @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /projects/{projectID} [delete]
+// @Router /v1/projects/{projectID} [delete]
 func (h *BaseHandler) ProjectDelete(w http.ResponseWriter, r *http.Request) {
 	projectID, err := strconv.Atoi(chi.URLParam(r, "projectID"))
 	if err != nil {
-		_ = WriteResponse(w, http.StatusBadRequest, NewErrorPayload(400002, "request path param should be integer", err))
+		_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422002, "request path param should be integer", err))
 		return
 	}
 
 	project, err := h.projectRepo.FindByID(projectID)
 
 	if err != nil && err != gorm.ErrRecordNotFound {
-		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500001, "could not find Project by ProjectID", err))
+		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(500001, "could not find Project by ProjectID", err))
 		return
 	}
 

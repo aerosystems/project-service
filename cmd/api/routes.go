@@ -36,13 +36,23 @@ func (app *Config) routes() http.Handler {
 		mux.Get("/v1/token/validate", app.BaseHandler.ValidateToken)
 	})
 
-	// Private routes
+	// Private routes OAuth 2.0: check roles [startup, business, admin, support]. Auth implemented on API Gateway
 	mux.Group(func(mux chi.Router) {
-		mux.Use(app.TokenAuthMiddleware)
+		mux.Use(func(next http.Handler) http.Handler {
+			return app.TokenAuthMiddleware(next, "startup", "business", "admin", "support")
+		})
 
 		mux.Get("/v1/projects/{projectID}", app.BaseHandler.ProjectRead)
 		mux.Post("/v1/projects", app.BaseHandler.ProjectCreate)
 		mux.Patch("/v1/projects/{projectID}", app.BaseHandler.ProjectUpdate)
+	})
+
+	// Private routes OAuth 2.0: check roles [business, admin, support]. Auth implemented on API Gateway
+	mux.Group(func(mux chi.Router) {
+		mux.Use(func(next http.Handler) http.Handler {
+			return app.TokenAuthMiddleware(next, "business", "admin", "support")
+		})
+
 		mux.Delete("/v1/projects/{projectID}", app.BaseHandler.ProjectDelete)
 	})
 

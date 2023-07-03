@@ -14,12 +14,6 @@ type Project struct {
 	UpdatedAt  time.Time `json:"-"`
 }
 
-type ProjectRequest struct {
-	UserID     int       `json:"user_id" example:"66"`
-	Name       string    `json:"name" example:"bla-bla-bla.com"`
-	AccessTime time.Time `json:"access_time" example:"2027-03-03T08:15:00Z"`
-}
-
 type ProjectRepository interface {
 	FindByID(ID int) (*Project, error)
 	FindByToken(token string) (*Project, error)
