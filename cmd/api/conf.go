@@ -6,7 +6,6 @@ import (
 )
 
 type Config struct {
-	WebPort     string
 	BaseHandler *handlers.BaseHandler
 	ProjectRepo models.ProjectRepository
 }

@@ -5,9 +5,16 @@ import (
 	"github.com/aerosystems/project-service/internal/handlers"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository"
+	RPCServer "github.com/aerosystems/project-service/internal/rpc_server"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"log"
 	"net/http"
+	"net/rpc"
+)
+
+const (
+	rpcPort = "5001"
+	webPort = "80"
 )
 
 // @title Project Service
@@ -40,20 +47,32 @@ func main() {
 	projectRepo := repository.NewProjectRepo(clientGORM)
 
 	app := Config{
-		WebPort:     "80",
 		BaseHandler: handlers.NewBaseHandler(projectRepo),
 		ProjectRepo: projectRepo,
 	}
 
+	if err := rpc.Register(RPCServer.NewProjectServer(projectRepo)); err != nil {
+		log.Fatal(err)
+	}
+	errChan := make(chan error)
+	// Start RPC server
+	log.Printf("starting RPC server project-service on port %s\n", rpcPort)
+	go func() {
+		if err := RPCServer.Listen(rpcPort); err != nil {
+			errChan <- err
+		}
+	}()
+
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", app.WebPort),
+		Addr:    fmt.Sprintf(":%s", webPort),
 		Handler: app.routes(),
 	}
+	// Start HTTP server
+	log.Printf("starting HTTP server project-service on port %s\n", webPort)
+	go func() {
+		errChan <- srv.ListenAndServe()
+	}()
 
-	log.Printf("Starting authentication end service on port %s\n", app.WebPort)
-	err := srv.ListenAndServe()
-
-	if err != nil {
-		log.Panic(err)
-	}
+	err := <-errChan
+	log.Fatal(err)
 }
