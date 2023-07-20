@@ -66,8 +66,8 @@ func (app *Config) TokenAuthMiddleware(next http.Handler, roles ...string) http.
 				return
 			}
 		}
-		fmt.Println("!!!!", tokenClaims)
-		ctx := context.WithValue(r.Context(), helpers.ContextKey("accessTokenClaimsKey"), tokenClaims)
+
+		ctx := context.WithValue(r.Context(), helpers.ContextKey("accessTokenClaims"), tokenClaims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 

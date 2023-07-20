@@ -1,9 +1,9 @@
 package RPCServer
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -17,15 +17,19 @@ func NewProjectServer(projectRepo models.ProjectRepository) *ProjectServer {
 
 type RPCProjectPayload struct {
 	UserID     int
+	UserRole   string
 	Name       string
 	AccessTime time.Time
 }
 
 func (r *ProjectServer) CreateProject(payload RPCProjectPayload, resp *string) error {
 	projectList, err := r.projectRepo.FindByUserID(payload.UserID)
-	// TODO: handle error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil {
 		return err
+	}
+
+	if len(projectList) > 0 && payload.UserRole == "startup" {
+		return errors.New("user with Startup plan already has project, for create more projects you should switch into Business plan")
 	}
 
 	for _, project := range projectList {

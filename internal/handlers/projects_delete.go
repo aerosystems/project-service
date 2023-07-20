@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"github.com/aerosystems/project-service/internal/helpers"
+	AuthService "github.com/aerosystems/project-service/pkg/auth_service"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 	"net/http"
@@ -24,6 +27,13 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectID} [delete]
 func (h *BaseHandler) ProjectDelete(w http.ResponseWriter, r *http.Request) {
+	// receive AccessToken Claims from context middleware
+	accessTokenClaims, ok := r.Context().Value(helpers.ContextKey("accessTokenClaims")).(*AuthService.AccessTokenClaims)
+	if !ok {
+		err := errors.New("could not get token claims from Access Token")
+		_ = WriteResponse(w, http.StatusUnauthorized, NewErrorPayload(401001, "could not get token claims from Access Token", err))
+		return
+	}
 	projectID, err := strconv.Atoi(chi.URLParam(r, "projectID"))
 	if err != nil {
 		_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422002, "request path param should be integer", err))
@@ -32,13 +42,19 @@ func (h *BaseHandler) ProjectDelete(w http.ResponseWriter, r *http.Request) {
 
 	project, err := h.projectRepo.FindByID(projectID)
 
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err == gorm.ErrRecordNotFound {
+		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404001, "project not found", err))
+		return
+	}
+	if err != nil {
 		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(500001, "could not find Project by ProjectID", err))
 		return
 	}
 
-	if project == nil {
-		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404001, "project not found", err))
+	// restrict access to project for users with role "startup" or "business"
+	if project.UserID != accessTokenClaims.UserID && helpers.Contains([]string{"startup", "business"}, accessTokenClaims.UserRole) {
+		err := errors.New("user does not have access to this project")
+		_ = WriteResponse(w, http.StatusForbidden, NewErrorPayload(403001, err.Error(), err))
 		return
 	}
 
