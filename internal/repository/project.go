@@ -34,14 +34,13 @@ func (r *ProjectRepo) FindByToken(Token string) (*models.Project, error) {
 	return &project, nil
 }
 
-// FindByUserID TODO must return array of Projects
-func (r *ProjectRepo) FindByUserID(UserID int) (*models.Project, error) {
-	var project models.Project
-	result := r.db.First(&project, "user_id = ?", UserID)
+func (r *ProjectRepo) FindByUserID(UserID int) ([]models.Project, error) {
+	var projects []models.Project
+	result := r.db.Find(&projects, "user_id = ?", UserID)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &project, nil
+	return projects, nil
 }
 
 func (r *ProjectRepo) Create(project *models.Project) error {

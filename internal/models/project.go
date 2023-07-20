@@ -17,7 +17,7 @@ type Project struct {
 type ProjectRepository interface {
 	FindByID(ID int) (*Project, error)
 	FindByToken(token string) (*Project, error)
-	FindByUserID(UserID int) (*Project, error)
+	FindByUserID(UserID int) ([]Project, error)
 	Create(project *Project) error
 	Update(project *Project) error
 	Delete(project *Project) error

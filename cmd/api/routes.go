@@ -47,9 +47,8 @@ func (app *Config) routes() http.Handler {
 			return app.TokenAuthMiddleware(next, "startup", "business", "admin", "support")
 		})
 
-		mux.Get("/v1/projects/{projectID}", app.BaseHandler.ProjectRead)
-		mux.Post("/v1/projects", app.BaseHandler.ProjectCreate)
-		mux.Patch("/v1/projects/{projectID}", app.BaseHandler.ProjectUpdate)
+		mux.Get("/v1/projects", app.BaseHandler.GetProjectList)
+		mux.Get("/v1/projects/{projectID}", app.BaseHandler.GetProject)
 	})
 
 	// Private routes OAuth 2.0: check roles [business, admin, support]. Auth implemented on API Gateway
@@ -59,6 +58,8 @@ func (app *Config) routes() http.Handler {
 		})
 
 		mux.Delete("/v1/projects/{projectID}", app.BaseHandler.ProjectDelete)
+		mux.Post("/v1/projects", app.BaseHandler.ProjectCreate)
+		mux.Patch("/v1/projects/{projectID}", app.BaseHandler.ProjectUpdate)
 	})
 
 	return mux

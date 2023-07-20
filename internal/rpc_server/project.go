@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
 	"gorm.io/gorm"
-	"log"
 	"time"
 )
 
@@ -16,21 +15,20 @@ func NewProjectServer(projectRepo models.ProjectRepository) *ProjectServer {
 	return &ProjectServer{projectRepo: projectRepo}
 }
 
-type ProjectPayload struct {
+type RPCProjectPayload struct {
 	UserID     int
 	Name       string
 	AccessTime time.Time
 }
 
-func (r *ProjectServer) CreateProject(payload ProjectPayload, resp *string) error {
-	log.Printf("received request to create project %s from %d", payload.Name, payload.UserID)
-
-	project, err := r.projectRepo.FindByUserID(payload.UserID)
+func (r *ProjectServer) CreateProject(payload RPCProjectPayload, resp *string) error {
+	projectList, err := r.projectRepo.FindByUserID(payload.UserID)
+	// TODO: handle error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return err
 	}
 
-	if project != nil {
+	for _, project := range projectList {
 		if project.Name == payload.Name {
 			err := fmt.Errorf("project with Name %s already exists", payload.Name)
 			return err
@@ -47,6 +45,6 @@ func (r *ProjectServer) CreateProject(payload ProjectPayload, resp *string) erro
 		return err
 	}
 
-	*resp = "OK"
+	*resp = fmt.Sprintf("project %s successfully created", payload.Name)
 	return nil
 }

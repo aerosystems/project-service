@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
-	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
@@ -61,20 +59,20 @@ func (h *BaseHandler) ProjectCreate(w http.ResponseWriter, r *http.Request) {
 		_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422102, err.Error(), err))
 		return
 	}
-
-	project, err := h.projectRepo.FindByUserID(requestPayload.UserID)
-	if err != nil && err != gorm.ErrRecordNotFound {
-		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not compare new Project with projects", err))
-		return
-	}
-
-	if project != nil {
-		if project.Name == requestPayload.Name {
-			err := fmt.Errorf("project with Name %s already exists", requestPayload.Name)
-			_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(409102, "project with Name already exists", err))
-			return
-		}
-	}
+	// TODO: check if project with same name already exists
+	//project, err := h.projectRepo.FindByUserID(requestPayload.UserID)
+	//if err != nil && err != gorm.ErrRecordNotFound {
+	//	_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not compare new Project with projects", err))
+	//	return
+	//}
+	//
+	//if project != nil {
+	//	if project.Name == requestPayload.Name {
+	//		err := fmt.Errorf("project with Name %s already exists", requestPayload.Name)
+	//		_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(409102, "project with Name already exists", err))
+	//		return
+	//	}
+	//}
 
 	var newProject = models.Project{
 		UserID:     requestPayload.UserID,
@@ -82,7 +80,7 @@ func (h *BaseHandler) ProjectCreate(w http.ResponseWriter, r *http.Request) {
 		AccessTime: requestPayload.AccessTime,
 	}
 
-	if err = h.projectRepo.Create(&newProject); err != nil {
+	if err := h.projectRepo.Create(&newProject); err != nil {
 		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500103, "could not create new Project", err))
 		return
 	}
