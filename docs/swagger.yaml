@@ -10,7 +10,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: Project Service
-  version: 1.0.5
+  version: 1.0.6
 paths: {}
 securityDefinitions:
   BearerAuth:

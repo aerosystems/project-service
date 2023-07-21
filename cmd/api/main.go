@@ -18,7 +18,7 @@ const (
 )
 
 // @title Project Service
-// @version 1.0.5
+// @version 1.0.6
 // @description A part of microservice infrastructure, who responsible for managing user Projects
 
 // @contact.name Artem Kostenko

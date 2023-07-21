@@ -14,7 +14,7 @@ import (
 
 type UpdateProjectRequest struct {
 	Name       string    `json:"name" example:"bla-bla-bla.com"`
-	AccessTime time.Time `json:"access_time" example:"2027-03-03T08:15:00Z"`
+	AccessTime time.Time `json:"accessTime" example:"2027-03-03T08:15:00Z"`
 }
 
 // ProjectUpdate godoc
@@ -55,13 +55,13 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	project, err := h.projectRepo.FindByID(projectID)
-	if err != nil && err != gorm.ErrRecordNotFound {
-		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not compare new Project with projects", err))
+	if err == gorm.ErrRecordNotFound {
+		err := fmt.Errorf("project ID %d does not exist", projectID)
+		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404005, "project ID does not exist", err))
 		return
 	}
-	if project == nil {
-		err := fmt.Errorf("project ID %d does not exist", projectID)
-		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404005, err.Error(), err))
+	if err != nil {
+		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not compare new Project with projects", err))
 		return
 	}
 
@@ -86,9 +86,8 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.projectRepo.Update(project); err != nil {
-		// TODO have to make user projects audit
 		if err == gorm.ErrDuplicatedKey {
-			_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(500105, "user does not have the same project names", err))
+			_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(409105, "user does not have the same project names", err))
 			return
 		}
 		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500104, "could not update project", err))
