@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -55,7 +56,7 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	project, err := h.projectRepo.FindByID(projectID)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) || strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 		err := fmt.Errorf("project ID %d does not exist", projectID)
 		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404005, "project ID does not exist", err))
 		return
@@ -86,7 +87,7 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.projectRepo.Update(project); err != nil {
-		if err == gorm.ErrDuplicatedKey {
+		if errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(409105, "user does not have the same project names", err))
 			return
 		}
@@ -94,7 +95,6 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload := NewResponsePayload("project successfully updated", project)
-	_ = WriteResponse(w, http.StatusOK, payload)
+	_ = WriteResponse(w, http.StatusOK, NewResponsePayload("project successfully updated", project))
 	return
 }

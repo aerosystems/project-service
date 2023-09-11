@@ -23,6 +23,64 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/v1/projects": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "projects"
+                ],
+                "summary": "get all projects. Result depends on user role",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handlers.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Project"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -46,7 +104,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateProjectRequest"
+                            "$ref": "#/definitions/transform.CreateProjectRequest"
                         }
                     }
                 ],
@@ -394,23 +452,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.CreateProjectRequest": {
-            "type": "object",
-            "properties": {
-                "access_time": {
-                    "type": "string",
-                    "example": "2027-03-03T08:15:00Z"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "bla-bla-bla.com"
-                },
-                "user_id": {
-                    "type": "integer",
-                    "example": 66
-                }
-            }
-        },
         "handlers.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -435,7 +476,7 @@ const docTemplate = `{
         "handlers.UpdateProjectRequest": {
             "type": "object",
             "properties": {
-                "access_time": {
+                "accessTime": {
                     "type": "string",
                     "example": "2027-03-03T08:15:00Z"
                 },
@@ -448,7 +489,7 @@ const docTemplate = `{
         "models.Project": {
             "type": "object",
             "properties": {
-                "access_time": {
+                "accessTime": {
                     "type": "string",
                     "example": "2027-03-03T08:15:00Z"
                 },
@@ -464,9 +505,26 @@ const docTemplate = `{
                     "type": "string",
                     "example": "38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f"
                 },
-                "user_id": {
+                "userId": {
                     "type": "integer",
                     "example": 666
+                }
+            }
+        },
+        "transform.CreateProjectRequest": {
+            "type": "object",
+            "properties": {
+                "accessTime": {
+                    "type": "string",
+                    "example": "2027-03-03T08:15:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "bla-bla-bla.com"
+                },
+                "userId": {
+                    "type": "integer",
+                    "example": 66
                 }
             }
         }

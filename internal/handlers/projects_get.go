@@ -94,7 +94,6 @@ func (h *BaseHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload := NewResponsePayload(fmt.Sprintf("project ID %d successfully found", projectID), project)
-	_ = WriteResponse(w, http.StatusOK, payload)
+	_ = WriteResponse(w, http.StatusOK, NewResponsePayload(fmt.Sprintf("project ID %d successfully found", projectID), project))
 	return
 }

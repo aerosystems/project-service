@@ -73,7 +73,6 @@ func (h *BaseHandler) ProjectCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload := NewResponsePayload("project successfully created", newProject)
-	_ = WriteResponse(w, http.StatusOK, payload)
+	_ = WriteResponse(w, http.StatusOK, NewResponsePayload("project successfully created", newProject))
 	return
 }
