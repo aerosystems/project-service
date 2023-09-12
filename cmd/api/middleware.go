@@ -17,12 +17,12 @@ import (
 
 func (app *Config) XApiKeyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := validators.ValidateXApiKey(r.Header.Get("X-API-KEY")); err != nil {
-			_ = handlers.WriteResponse(w, http.StatusUnauthorized, handlers.NewErrorPayload(401001, "X-API-KEY is not valid", err))
+		if err := validators.ValidateXApiKey(r.Header.Get("X-Api-Key")); err != nil {
+			_ = handlers.WriteResponse(w, http.StatusUnauthorized, handlers.NewErrorPayload(401001, "X-Api-Key is not valid", err))
 			return
 		}
 
-		project, err := app.ProjectRepo.FindByToken(r.Header.Get("X-API-KEY"))
+		project, err := app.ProjectRepo.FindByToken(r.Header.Get("X-Api-Key"))
 		if err != nil {
 			_ = handlers.WriteResponse(w, http.StatusUnauthorized, handlers.NewErrorPayload(401002, "could not get Project data from storage", err))
 			return

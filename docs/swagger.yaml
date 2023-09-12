@@ -324,7 +324,7 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       security:
-      - X-API-KEY: []
+      - X-Api-Key: []
       summary: validate token
       tags:
       - token
@@ -334,9 +334,9 @@ securityDefinitions:
     in: header
     name: Authorization
     type: apiKey
-  X-API-KEY:
+  X-Api-Key:
     description: Should contain Token, digits and letters, 64 symbols length
     in: header
-    name: X-API-KEY
+    name: X-Api-Key
     type: apiKey
 swagger: "2.0"

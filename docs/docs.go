@@ -421,7 +421,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "X-API-KEY": []
+                        "X-Api-Key": []
                     }
                 ],
                 "consumes": [
@@ -536,10 +536,10 @@ const docTemplate = `{
             "name": "Authorization",
             "in": "header"
         },
-        "X-API-KEY": {
+        "X-Api-Key": {
             "description": "Should contain Token, digits and letters, 64 symbols length",
             "type": "apiKey",
-            "name": "X-API-KEY",
+            "name": "X-Api-Key",
             "in": "header"
         }
     }

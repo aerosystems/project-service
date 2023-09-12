@@ -25,7 +25,7 @@ func (app *Config) routes() http.Handler {
 		))
 	})
 
-	// Private routes X-API-KEY
+	// Private routes X-Api-Key
 	mux.Group(func(mux chi.Router) {
 		mux.Use(app.XApiKeyMiddleware)
 		mux.Get("/v1/token/validate", app.BaseHandler.ValidateToken)
