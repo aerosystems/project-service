@@ -48,9 +48,8 @@ func (r *ProjectServer) CreateProject(payload CreateProjectRPCPayload, resp *str
 	}
 
 	var newProject = models.Project{
-		UserID:     payload.UserID,
-		Name:       payload.Name,
-		AccessTime: payload.AccessTime,
+		UserID: payload.UserID,
+		Name:   payload.Name,
 	}
 
 	if err = r.projectRepo.Create(&newProject); err != nil {
@@ -68,11 +67,10 @@ func (r *ProjectServer) GetProject(projectToken string, resp *ProjectRPCPayload)
 	}
 
 	*resp = ProjectRPCPayload{
-		ID:         project.ID,
-		UserID:     project.UserID,
-		Name:       project.Name,
-		Token:      project.Token,
-		AccessTime: project.AccessTime,
+		ID:     project.ID,
+		UserID: project.UserID,
+		Name:   project.Name,
+		Token:  project.Token,
 	}
 	return nil
 }
@@ -85,11 +83,10 @@ func (r *ProjectServer) GetProjectList(userID int, resp *[]ProjectRPCPayload) er
 
 	for _, project := range projectList {
 		*resp = append(*resp, ProjectRPCPayload{
-			ID:         project.ID,
-			UserID:     project.UserID,
-			Name:       project.Name,
-			Token:      project.Token,
-			AccessTime: project.AccessTime,
+			ID:     project.ID,
+			UserID: project.UserID,
+			Name:   project.Name,
+			Token:  project.Token,
 		})
 	}
 	return nil

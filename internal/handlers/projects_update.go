@@ -70,15 +70,6 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 		project.Name = requestPayload.Name
 	}
 
-	if !requestPayload.AccessTime.IsZero() {
-		if requestPayload.AccessTime.Before(time.Now()) {
-			err := errors.New("accessTime should be more then NOW")
-			_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422102, err.Error(), err))
-			return
-		}
-		project.AccessTime = requestPayload.AccessTime
-	}
-
 	// restrict access to project for users with role "startup" or "business"
 	if project.UserID != accessTokenClaims.UserID && helpers.Contains([]string{"startup", "business"}, accessTokenClaims.UserRole) {
 		err := errors.New("user does not have access to this project")

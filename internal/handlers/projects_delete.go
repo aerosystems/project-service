@@ -42,7 +42,7 @@ func (h *BaseHandler) ProjectDelete(w http.ResponseWriter, r *http.Request) {
 
 	project, err := h.projectRepo.FindByID(projectID)
 
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404001, "project not found", err))
 		return
 	}
