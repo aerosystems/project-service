@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
-	"time"
 )
 
 type ProjectServer struct {
@@ -16,18 +15,16 @@ func NewProjectServer(projectRepo models.ProjectRepository) *ProjectServer {
 }
 
 type CreateProjectRPCPayload struct {
-	UserID     int
-	UserRole   string
-	Name       string
-	AccessTime time.Time
+	UserID   int
+	UserRole string
+	Name     string
 }
 
 type ProjectRPCPayload struct {
-	ID         int
-	UserID     int
-	Name       string
-	Token      string
-	AccessTime time.Time
+	ID     int
+	UserID int
+	Name   string
+	Token  string
 }
 
 func (r *ProjectServer) CreateProject(payload CreateProjectRPCPayload, resp *string) error {
