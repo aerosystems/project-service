@@ -489,10 +489,6 @@ const docTemplate = `{
         "models.Project": {
             "type": "object",
             "properties": {
-                "accessTime": {
-                    "type": "string",
-                    "example": "2027-03-03T08:15:00Z"
-                },
                 "id": {
                     "type": "integer",
                     "example": 66
@@ -514,10 +510,6 @@ const docTemplate = `{
         "transform.CreateProjectRequest": {
             "type": "object",
             "properties": {
-                "accessTime": {
-                    "type": "string",
-                    "example": "2027-03-03T08:15:00Z"
-                },
                 "name": {
                     "type": "string",
                     "example": "bla-bla-bla.com"

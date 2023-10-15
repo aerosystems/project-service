@@ -25,9 +25,6 @@ definitions:
     type: object
   models.Project:
     properties:
-      accessTime:
-        example: "2027-03-03T08:15:00Z"
-        type: string
       id:
         example: 66
         type: integer
@@ -43,9 +40,6 @@ definitions:
     type: object
   transform.CreateProjectRequest:
     properties:
-      accessTime:
-        example: "2027-03-03T08:15:00Z"
-        type: string
       name:
         example: bla-bla-bla.com
         type: string
