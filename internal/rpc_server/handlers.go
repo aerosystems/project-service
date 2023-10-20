@@ -1,7 +1,6 @@
 package RPCServer
 
 import (
-	"errors"
 	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
 )
@@ -15,9 +14,8 @@ func NewProjectServer(projectRepo models.ProjectRepository) *ProjectServer {
 }
 
 type CreateProjectRPCPayload struct {
-	UserID   int
-	UserRole string
-	Name     string
+	UserID int
+	Name   string
 }
 
 type ProjectRPCPayload struct {
@@ -31,10 +29,6 @@ func (r *ProjectServer) CreateProject(payload CreateProjectRPCPayload, resp *str
 	projectList, err := r.projectRepo.FindByUserID(payload.UserID)
 	if err != nil {
 		return err
-	}
-
-	if len(projectList) > 0 && payload.UserRole == "startup" {
-		return errors.New("user with Startup plan already has project, for create more projects you should switch into Business plan")
 	}
 
 	for _, project := range projectList {
