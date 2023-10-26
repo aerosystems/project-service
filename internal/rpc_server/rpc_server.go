@@ -3,7 +3,6 @@ package RPCServer
 import (
 	"fmt"
 	"net"
-	"net/rpc"
 )
 
 func Listen(rpcPort string) error {
