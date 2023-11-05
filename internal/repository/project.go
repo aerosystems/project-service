@@ -16,16 +16,16 @@ func NewProjectRepo(db *gorm.DB) *ProjectRepo {
 	}
 }
 
-func (r *ProjectRepo) FindByID(ID int) (*models.Project, error) {
+func (r *ProjectRepo) GetById(Id int) (*models.Project, error) {
 	var project models.Project
-	result := r.db.First(&project, ID)
+	result := r.db.First(&project, Id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &project, nil
 }
 
-func (r *ProjectRepo) FindByToken(Token string) (*models.Project, error) {
+func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
 	var project models.Project
 	result := r.db.First(&project, "token = ?", Token)
 	if result.Error != nil {
@@ -34,9 +34,9 @@ func (r *ProjectRepo) FindByToken(Token string) (*models.Project, error) {
 	return &project, nil
 }
 
-func (r *ProjectRepo) FindByUserID(UserID int) ([]models.Project, error) {
+func (r *ProjectRepo) GetByUserId(UserId uint) ([]models.Project, error) {
 	var projects []models.Project
-	result := r.db.Find(&projects, "user_id = ?", UserID)
+	result := r.db.Find(&projects, "user_id = ?", UserId)
 	if result.Error != nil {
 		return nil, result.Error
 	}

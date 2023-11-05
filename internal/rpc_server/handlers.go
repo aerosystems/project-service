@@ -26,7 +26,7 @@ type ProjectRPCPayload struct {
 }
 
 func (r *ProjectServer) CreateProject(payload CreateProjectRPCPayload, resp *string) error {
-	projectList, err := r.projectRepo.FindByUserID(payload.UserID)
+	projectList, err := r.projectRepo.GetByUserId(payload.UserID)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (r *ProjectServer) CreateProject(payload CreateProjectRPCPayload, resp *str
 	}
 
 	var newProject = models.Project{
-		UserID: payload.UserID,
+		UserId: payload.UserID,
 		Name:   payload.Name,
 	}
 
@@ -52,14 +52,14 @@ func (r *ProjectServer) CreateProject(payload CreateProjectRPCPayload, resp *str
 }
 
 func (r *ProjectServer) GetProject(projectToken string, resp *ProjectRPCPayload) error {
-	project, err := r.projectRepo.FindByToken(projectToken)
+	project, err := r.projectRepo.GetByToken(projectToken)
 	if err != nil {
 		return err
 	}
 
 	*resp = ProjectRPCPayload{
 		ID:     project.ID,
-		UserID: project.UserID,
+		UserID: project.UserId,
 		Name:   project.Name,
 		Token:  project.Token,
 	}
@@ -67,7 +67,7 @@ func (r *ProjectServer) GetProject(projectToken string, resp *ProjectRPCPayload)
 }
 
 func (r *ProjectServer) GetProjectList(userID int, resp *[]ProjectRPCPayload) error {
-	projectList, err := r.projectRepo.FindByUserID(userID)
+	projectList, err := r.projectRepo.GetByUserId(userID)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (r *ProjectServer) GetProjectList(userID int, resp *[]ProjectRPCPayload) er
 	for _, project := range projectList {
 		*resp = append(*resp, ProjectRPCPayload{
 			ID:     project.ID,
-			UserID: project.UserID,
+			UserID: project.UserId,
 			Name:   project.Name,
 			Token:  project.Token,
 		})

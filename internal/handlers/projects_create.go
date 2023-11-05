@@ -47,7 +47,7 @@ func (h *BaseHandler) ProjectCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectList, err := h.projectRepo.FindByUserID(requestPayload.UserID)
+	projectList, err := h.projectRepo.GetByUserId(requestPayload.UserID)
 	if err != nil {
 		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not create new Project", err))
 		return

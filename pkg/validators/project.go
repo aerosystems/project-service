@@ -6,7 +6,7 @@ import (
 )
 
 func ValidateProject(project models.Project) error {
-	if project.UserID == 0 {
+	if project.UserId == 0 {
 		return errors.New("userID does not be empty")
 	}
 

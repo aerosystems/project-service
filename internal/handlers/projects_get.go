@@ -31,10 +31,10 @@ func (h *BaseHandler) GetProjectList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projects, err := h.projectRepo.FindByUserID(accessTokenClaims.UserID)
+	projects, err := h.projectRepo.GetByUserId(accessTokenClaims.UserID)
 	if err != nil {
-		err := errors.New("could not get projects by UserID")
-		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500001, "could not get projects by UserID", err))
+		err := errors.New("could not get projects by UserId")
+		_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500001, "could not get projects by UserId", err))
 		return
 	}
 	if len(projects) == 0 {
@@ -77,7 +77,7 @@ func (h *BaseHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := h.projectRepo.FindByID(projectID)
+	project, err := h.projectRepo.GetById(projectID)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(500001, "could not find Project by Project ID", err))
 		return
@@ -88,7 +88,7 @@ func (h *BaseHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if project.UserID != accessTokenClaims.UserID {
+	if project.UserId != accessTokenClaims.UserID {
 		err := errors.New("project does not belong to user")
 		_ = WriteResponse(w, http.StatusForbidden, NewErrorPayload(403001, "project does not belong to user", err))
 		return

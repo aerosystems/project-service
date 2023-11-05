@@ -11,7 +11,7 @@ type CreateProjectRequest struct {
 
 func CreateRequest2Model(reqProject CreateProjectRequest) models.Project {
 	return models.Project{
-		UserID: reqProject.UserID,
+		UserId: reqProject.UserID,
 		Name:   reqProject.Name,
 	}
 }

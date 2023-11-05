@@ -55,7 +55,7 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := h.projectRepo.FindByID(projectID)
+	project, err := h.projectRepo.GetById(projectID)
 	if errors.Is(err, gorm.ErrRecordNotFound) || strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 		err := fmt.Errorf("project ID %d does not exist", projectID)
 		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404005, "project ID does not exist", err))
@@ -71,7 +71,7 @@ func (h *BaseHandler) ProjectUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// restrict access to project for users with role "startup" or "business"
-	if project.UserID != accessTokenClaims.UserID && helpers.Contains([]string{"startup", "business"}, accessTokenClaims.UserRole) {
+	if project.UserId != accessTokenClaims.UserID && helpers.Contains([]string{"startup", "business"}, accessTokenClaims.UserRole) {
 		err := errors.New("user does not have access to this project")
 		_ = WriteResponse(w, http.StatusForbidden, NewErrorPayload(403001, err.Error(), err))
 		return

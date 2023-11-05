@@ -22,7 +22,7 @@ func (app *Config) XApiKeyMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		project, err := app.ProjectRepo.FindByToken(r.Header.Get("X-Api-Key"))
+		project, err := app.ProjectRepo.GetByToken(r.Header.Get("X-Api-Key"))
 		if err != nil {
 			_ = handlers.WriteResponse(w, http.StatusUnauthorized, handlers.NewErrorPayload(401002, "could not get Project data from storage", err))
 			return

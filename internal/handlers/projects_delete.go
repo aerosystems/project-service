@@ -40,7 +40,7 @@ func (h *BaseHandler) ProjectDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := h.projectRepo.FindByID(projectID)
+	project, err := h.projectRepo.GetById(projectID)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404001, "project not found", err))
@@ -52,7 +52,7 @@ func (h *BaseHandler) ProjectDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// restrict access to project for users with role "startup" or "business"
-	if project.UserID != accessTokenClaims.UserID && helpers.Contains([]string{"startup", "business"}, accessTokenClaims.UserRole) {
+	if project.UserId != accessTokenClaims.UserID && helpers.Contains([]string{"startup", "business"}, accessTokenClaims.UserRole) {
 		err := errors.New("user does not have access to this project")
 		_ = WriteResponse(w, http.StatusForbidden, NewErrorPayload(403001, err.Error(), err))
 		return
