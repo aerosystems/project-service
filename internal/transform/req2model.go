@@ -5,13 +5,13 @@ import (
 )
 
 type CreateProjectRequest struct {
-	UserID int    `json:"userId" example:"66"`
+	UserId int    `json:"userId" example:"66"`
 	Name   string `json:"name" example:"bla-bla-bla.com"`
 }
 
 func CreateRequest2Model(reqProject CreateProjectRequest) models.Project {
 	return models.Project{
-		UserId: reqProject.UserID,
+		UserId: reqProject.UserId,
 		Name:   reqProject.Name,
 	}
 }

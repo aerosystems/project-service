@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"errors"
-	"github.com/aerosystems/customer-service/internal/services"
+	"github.com/aerosystems/project-service/internal/services"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"net/http"

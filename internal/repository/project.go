@@ -34,7 +34,7 @@ func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
 	return &project, nil
 }
 
-func (r *ProjectRepo) GetByUserId(UserId uint) ([]models.Project, error) {
+func (r *ProjectRepo) GetByUserId(UserId int) ([]models.Project, error) {
 	var projects []models.Project
 	result := r.db.Find(&projects, "user_id = ?", UserId)
 	if result.Error != nil {

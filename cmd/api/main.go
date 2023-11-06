@@ -3,18 +3,23 @@ package main
 import (
 	"fmt"
 	"github.com/aerosystems/project-service/internal/handlers"
+	"github.com/aerosystems/project-service/internal/middleware"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository"
 	RPCServer "github.com/aerosystems/project-service/internal/rpc_server"
+	"github.com/aerosystems/project-service/internal/services"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
-	"log"
-	"net/http"
+	"github.com/aerosystems/project-service/pkg/logger"
+	"github.com/aerosystems/project-service/pkg/validators"
+	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 	"net/rpc"
+	"os"
 )
 
 const (
-	rpcPort = "5001"
-	webPort = "80"
+	rpcPort = 5001
+	webPort = 80
 )
 
 // @title Project Service
@@ -37,40 +42,38 @@ const (
 // @name Authorization
 // @description Should contain Access JWT Token, with the Bearer started
 
-// @host localhost:8082
+// @host gw.verifire.com/project
+// @schemes https
 // @BasePath /
 func main() {
-	clientGORM := GormPostgres.NewClient()
-	if err := clientGORM.AutoMigrate(&models.Project{}); err != nil {
-		log.Panic(err)
-	}
+	log := logger.NewLogger(os.Getenv("HOSTNAME"))
+
+	clientGORM := GormPostgres.NewClient(logrus.NewEntry(log.Logger))
+	_ = clientGORM.AutoMigrate(&models.Project{})
+
 	projectRepo := repository.NewProjectRepo(clientGORM)
+	projectService := services.NewProjectServiceImpl(projectRepo)
 
-	app := Config{
-		BaseHandler: handlers.NewBaseHandler(projectRepo),
-		ProjectRepo: projectRepo,
-	}
+	baseHandler := handlers.NewBaseHandler(os.Getenv("APP_ENV"), log.Logger, projectService)
+	projectServer := RPCServer.NewProjectServer(rpcPort, log.Logger, projectService)
 
-	if err := rpc.Register(RPCServer.NewProjectServer(projectRepo)); err != nil {
-		log.Fatal(err)
-	}
+	app := NewConfig(baseHandler)
+	e := app.NewRouter()
+	middleware.AddMiddleware(e, log.Logger)
+	validator := validator.New()
+	e.Validator = &validators.CustomValidator{Validator: validator}
+
 	errChan := make(chan error)
-	// Start RPC server
-	log.Printf("starting RPC server project-service on port %s\n", rpcPort)
+
 	go func() {
-		if err := RPCServer.Listen(rpcPort); err != nil {
-			errChan <- err
-		}
+		log.Infof("starting project-service RPC server on port %d\n", rpcPort)
+		errChan <- rpc.Register(projectServer)
+		errChan <- projectServer.Listen(rpcPort)
 	}()
 
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", webPort),
-		Handler: app.routes(),
-	}
-	// Start HTTP server
-	log.Printf("starting HTTP server project-service on port %s\n", webPort)
 	go func() {
-		errChan <- srv.ListenAndServe()
+		log.Infof("starting HTTP server project-service on port %s\n", webPort)
+		errChan <- e.Start(fmt.Sprintf(":%d", webPort))
 	}()
 
 	err := <-errChan
