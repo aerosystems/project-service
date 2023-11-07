@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"github.com/aerosystems/project-service/internal/services"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 // ProjectCreate godoc
@@ -15,51 +17,20 @@ import (
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 403 {object} ErrorResponse
-// @Failure 409 {object} ErrorResponse
 // @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects [post]
 func (h *BaseHandler) ProjectCreate(c echo.Context) error {
-
-	//var requestPayload transform.CreateProjectRequest
-	//if err := ReadRequest(w, r, &requestPayload); err != nil {
-	//	_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422001, "could not read request body", err))
-	//	return
-	//}
-	//
-	//newProject := transform.CreateRequest2Model(requestPayload)
-	//
-	//if err := validators.ValidateProject(newProject); err != nil {
-	//	_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422001, err.Error(), err))
-	//	return
-	//}
-	//
-	//projectList, err := h.projectRepo.GetByUserId(requestPayload.UserId)
-	//if err != nil {
-	//	_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not create new Project", err))
-	//	return
-	//}
-	//
-	//// restrict User with Role "startup"
-	//if len(projectList) > 0 && accessTokenClaims.UserRole == "startup" {
-	//	err := fmt.Errorf("user with Startup role and ID %d already has project", requestPayload.UserId)
-	//	_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(409101, "user with Startup plan already has project, for create more projects you should switch into Business plan", err))
-	//	return
-	//}
-	//
-	//for _, project := range projectList {
-	//	if project.Name == requestPayload.Name {
-	//		err := fmt.Errorf("project with Name %s already exists", requestPayload.Name)
-	//		_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(409102, err.Error(), err))
-	//		return
-	//	}
-	//}
-	//
-	//if err := h.projectRepo.Create(&newProject); err != nil {
-	//	_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500103, "could not create new Project", err))
-	//	return
-	//}
-	//
-	//_ = WriteResponse(w, http.StatusOK, NewResponsePayload("project successfully created", newProject))
+	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
+	var requestPayload ProjectRequest
+	if err := c.Bind(&requestPayload); err != nil {
+		return h.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
+	}
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole, requestPayload.UserId); err != nil {
+		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+	}
+	if err := h.projectService.CreateProject(requestPayload.UserId, requestPayload.Name); err != nil {
+		return h.ErrorResponse(c, http.StatusInternalServerError, "could not create default project", err)
+	}
 	return nil
 }

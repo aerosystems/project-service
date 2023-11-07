@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/aerosystems/project-service/internal/helpers"
+	"errors"
 	"github.com/aerosystems/project-service/internal/models"
 	"gorm.io/gorm"
 )
@@ -20,6 +20,9 @@ func (r *ProjectRepo) GetById(Id int) (*models.Project, error) {
 	var project models.Project
 	result := r.db.First(&project, Id)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, result.Error
 	}
 	return &project, nil
@@ -29,6 +32,9 @@ func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
 	var project models.Project
 	result := r.db.First(&project, "token = ?", Token)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, result.Error
 	}
 	return &project, nil
@@ -44,7 +50,6 @@ func (r *ProjectRepo) GetByUserId(UserId int) ([]models.Project, error) {
 }
 
 func (r *ProjectRepo) Create(project *models.Project) error {
-	project.Token = helpers.GenerateToken()
 	result := r.db.Create(&project)
 	if result.Error != nil {
 		return result.Error

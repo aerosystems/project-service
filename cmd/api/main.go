@@ -7,9 +7,11 @@ import (
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository"
 	RPCServer "github.com/aerosystems/project-service/internal/rpc_server"
+	RPCServices "github.com/aerosystems/project-service/internal/rpc_services"
 	"github.com/aerosystems/project-service/internal/services"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"github.com/aerosystems/project-service/pkg/logger"
+	RPCClient "github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/aerosystems/project-service/pkg/validators"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
@@ -52,7 +54,11 @@ func main() {
 	_ = clientGORM.AutoMigrate(&models.Project{})
 
 	projectRepo := repository.NewProjectRepo(clientGORM)
-	projectService := services.NewProjectServiceImpl(projectRepo)
+
+	subsRPCClient := RPCClient.NewClient("tcp", "subs-service:5001")
+	subsRPC := RPCServices.NewSubsRPC(subsRPCClient)
+
+	projectService := services.NewProjectServiceImpl(projectRepo, subsRPC)
 
 	baseHandler := handlers.NewBaseHandler(os.Getenv("APP_ENV"), log.Logger, projectService)
 	projectServer := RPCServer.NewProjectServer(rpcPort, log.Logger, projectService)
@@ -72,7 +78,7 @@ func main() {
 	}()
 
 	go func() {
-		log.Infof("starting HTTP server project-service on port %s\n", webPort)
+		log.Infof("starting HTTP server project-service on port %d\n", webPort)
 		errChan <- e.Start(fmt.Sprintf(":%d", webPort))
 	}()
 

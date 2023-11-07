@@ -19,12 +19,13 @@ func (app *Config) NewRouter() *echo.Echo {
 	e.GET("/v1/token/validate", app.baseHandler.ValidateToken)
 
 	// Private routes OAuth 2.0: check roles [customer, staff]. Auth implemented on API Gateway
-	e.GET("/v1/projects", app.baseHandler.GetProjectList, middleware.AuthTokenMiddleware("customer", "staff"))
-	e.GET("/v1/projects/{projectID}", app.baseHandler.GetProject, middleware.AuthTokenMiddleware("customer", "staff"))
+	e.GET("/v1/projects", app.baseHandler.GetProjectList, middleware.AuthTokenMiddleware([]string{"customer", "staff"}))
+	e.GET("/v1/projects/:projectId", app.baseHandler.GetProject, middleware.AuthTokenMiddleware([]string{"customer", "staff"}))
 
 	// Private routes OAuth 2.0: check roles [staff]. Auth implemented on API Gateway
-	e.DELETE("/v1/projects/{projectID}", app.baseHandler.ProjectDelete, middleware.AuthTokenMiddleware("staff"))
-	e.POST("/v1/projects", app.baseHandler.ProjectCreate, middleware.AuthTokenMiddleware("staff"))
-	e.PATCH("/v1/projects/{projectID}", app.baseHandler.ProjectUpdate, middleware.AuthTokenMiddleware("staff"))
+	e.POST("/v1/projects", app.baseHandler.ProjectCreate, middleware.AuthTokenMiddleware([]string{"staff"}))
+	e.PATCH("/v1/projects/:projectId", app.baseHandler.ProjectUpdate, middleware.AuthTokenMiddleware([]string{"staff"}))
+	e.DELETE("/v1/projects/:projectId", app.baseHandler.ProjectDelete, middleware.AuthTokenMiddleware([]string{"staff"}))
 
+	return e
 }
