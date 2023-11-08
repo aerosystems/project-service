@@ -26,7 +26,7 @@ func (h *BaseHandler) ProjectCreate(c echo.Context) error {
 	if err := c.Bind(&requestPayload); err != nil {
 		return h.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
 	}
-	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole, requestPayload.UserId); err != nil {
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
 		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
 	}
 	if err := h.projectService.CreateProject(requestPayload.UserId, requestPayload.Name); err != nil {

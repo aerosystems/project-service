@@ -1,10 +1,5 @@
 package RPCServer
 
-type CreateProjectRPCPayload struct {
-	UserId int
-	Name   string
-}
-
 type ProjectRPCPayload struct {
 	ID     int
 	UserId int
@@ -12,29 +7,13 @@ type ProjectRPCPayload struct {
 	Token  string
 }
 
-func (ps *ProjectServer) CreateProject(payload CreateProjectRPCPayload, resp *string) error {
-	//projectList, err := ps.projectRepo.GetByUserId(payload.UserId)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//for _, project := range projectList {
-	//	if project.Name == payload.Name {
-	//		err := fmt.Errorf("project with Name %s already exists", payload.Name)
-	//		return err
-	//	}
-	//}
-	//
-	//var newProject = models.Project{
-	//	UserId: payload.UserId,
-	//	Name:   payload.Name,
-	//}
-	//
-	//if err = ps.projectRepo.Create(&newProject); err != nil {
-	//	return err
-	//}
-	//
-	//*resp = fmt.Sprintf("project %s successfully created", payload.Name)
+func (ps *ProjectServer) CreateDefaultProject(projectPayload ProjectRPCPayload, resp *ProjectRPCPayload) error {
+	if err := ps.projectService.DetermineStrategy(projectPayload.UserId, "customer"); err != nil {
+		return err
+	}
+	if err := ps.projectService.CreateDefaultProject(projectPayload.UserId); err != nil {
+		return err
+	}
 	return nil
 }
 

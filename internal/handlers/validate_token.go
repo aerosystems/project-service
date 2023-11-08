@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 // ValidateToken godoc
@@ -14,19 +15,9 @@ import (
 // @Failure 401 {object} ErrorResponse
 // @Router /v1/token/validate [get]
 func (h *BaseHandler) ValidateToken(c echo.Context) error {
-	//project, ok := r.Context().Value(helpers.ContextKey("project")).(*models.Project)
-	//if !ok {
-	//	err := fmt.Errorf("could not get Project by Token: %s", r.Header.Get("X-Api-Key"))
-	//	_ = WriteResponse(w, http.StatusUnauthorized, NewErrorPayload(401001, "could not get Project by Token", err))
-	//	return
-	//}
-	//
-	//if project == nil {
-	//	err := fmt.Errorf("could not get Project by Token: %s", r.Header.Get("X-Api-Key"))
-	//	_ = WriteResponse(w, http.StatusUnauthorized, NewErrorPayload(401002, "could not get Project by Token", err))
-	//	return
-	//}
-	//
-	//_ = WriteResponse(w, http.StatusNoContent, nil)
-	return nil
+	token := c.Request().Header.Get("X-Api-Key")
+	if h.projectService.IsProjectExist(token) {
+		return h.ErrorResponse(c, http.StatusUnauthorized, "could not get Project by Token", nil)
+	}
+	return c.JSON(http.StatusNoContent, nil)
 }

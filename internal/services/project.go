@@ -12,12 +12,15 @@ import (
 )
 
 type ProjectService interface {
-	DetermineStrategy(senderId int, role string, userId int) error
+	DetermineStrategy(userId int, role string) error
+	GetProjectByToken(token string) (*models.Project, error)
+	GetProjectListByUserId(userId int) ([]models.Project, error)
 	CreateProject(userId int, name string) error
 	CreateDefaultProject(userId int) error
-	setStrategy(strategy Strategy)
+	IsProjectExist(projectToken string) bool
+	SetStrategy(strategy Strategy)
 	generateToken() string
-	isNameExists(name string, projectList []models.Project) bool
+	isProjectNameExist(name string, projectList []models.Project) bool
 }
 
 type ProjectServiceImpl struct {
@@ -33,13 +36,10 @@ func NewProjectServiceImpl(projectRepo models.ProjectRepository, subsRPC *RPCSer
 	}
 }
 
-func (ps *ProjectServiceImpl) DetermineStrategy(senderId int, role string, userId int) error {
+func (ps *ProjectServiceImpl) DetermineStrategy(userId int, role string) error {
 	if role == "staff" {
-		ps.setStrategy(&StaffStrategy{})
+		ps.SetStrategy(&StaffStrategy{userId})
 		return nil
-	}
-	if senderId != userId {
-		return errors.New("can't create a project for another user")
 	}
 	kind, err := ps.subsRPC.GetSubscriptionKind(userId)
 	if err != nil {
@@ -47,13 +47,35 @@ func (ps *ProjectServiceImpl) DetermineStrategy(senderId int, role string, userI
 	}
 	switch kind {
 	case "startup":
-		ps.setStrategy(&StartupStrategy{})
+		ps.SetStrategy(&StartupStrategy{userId})
 	case "business":
-		ps.setStrategy(&BusinessStrategy{})
+		ps.SetStrategy(&BusinessStrategy{userId})
 	default:
 		return errors.New("unknown subscription kind")
 	}
 	return nil
+}
+
+func (ps *ProjectServiceImpl) GetProjectByToken(token string) (*models.Project, error) {
+	project, err := ps.projectRepo.GetByToken(token)
+	if err != nil {
+		return nil, err
+	}
+	if !ps.strategy.IsAccessible(project.UserId) {
+		return nil, errors.New("user is not allowed to access the project")
+	}
+	return project, nil
+}
+
+func (ps *ProjectServiceImpl) GetProjectListByUserId(userId int) ([]models.Project, error) {
+	if !ps.strategy.IsAccessible(userId) {
+		return nil, errors.New("user is not allowed to access the project")
+	}
+	projectList, err := ps.projectRepo.GetByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
+	return projectList, nil
 }
 
 func (ps *ProjectServiceImpl) CreateDefaultProject(userId int) error {
@@ -68,10 +90,11 @@ func (ps *ProjectServiceImpl) CreateProject(userId int, name string) error {
 	if err != nil {
 		return err
 	}
-	if ps.isNameExists(name, projectList) {
+	if ps.isProjectNameExist(name, projectList) {
 		return errors.New("project name already exists")
 	}
-	if !ps.strategy.IsAccessible(userId, projectList) {
+	//TODO: count projects by user id for StartupStrategy
+	if !ps.strategy.IsAccessible(userId) {
 		return errors.New("user is not allowed to create a project")
 	}
 	var newProject = models.Project{
@@ -85,7 +108,18 @@ func (ps *ProjectServiceImpl) CreateProject(userId int, name string) error {
 	return nil
 }
 
-func (ps *ProjectServiceImpl) setStrategy(strategy Strategy) {
+func (ps *ProjectServiceImpl) IsProjectExist(projectToken string) bool {
+	project, err := ps.projectRepo.GetByToken(projectToken)
+	if err != nil {
+		return false
+	}
+	if project == nil {
+		return false
+	}
+	return true
+}
+
+func (ps *ProjectServiceImpl) SetStrategy(strategy Strategy) {
 	ps.strategy = strategy
 }
 
@@ -95,7 +129,7 @@ func (ps *ProjectServiceImpl) generateToken() string {
 	return fmt.Sprintf("%x", sum)
 }
 
-func (ps *ProjectServiceImpl) isNameExists(name string, projectList []models.Project) bool {
+func (ps *ProjectServiceImpl) isProjectNameExist(name string, projectList []models.Project) bool {
 	for _, project := range projectList {
 		if project.Name == name {
 			return true
