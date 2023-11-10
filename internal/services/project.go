@@ -13,13 +13,15 @@ import (
 
 type ProjectService interface {
 	DetermineStrategy(userId int, role string) error
+	GetProjectById(projectId int) (*models.Project, error)
 	GetProjectByToken(token string) (*models.Project, error)
-	GetProjectListByUserId(userId int) ([]models.Project, error)
+	GetProjectListByUserId(userId, filterUserId int) ([]models.Project, error)
 	CreateProject(userId int, name string) error
 	CreateDefaultProject(userId int) error
-	IsProjectExist(projectToken string) bool
+	UpdateProject(project *models.Project) error
+	DeleteProjectById(projectId int) error
+	IsProjectExistByToken(projectToken string) bool
 	SetStrategy(strategy Strategy)
-	generateToken() string
 	isProjectNameExist(name string, projectList []models.Project) bool
 }
 
@@ -56,25 +58,36 @@ func (ps *ProjectServiceImpl) DetermineStrategy(userId int, role string) error {
 	return nil
 }
 
-func (ps *ProjectServiceImpl) GetProjectByToken(token string) (*models.Project, error) {
-	project, err := ps.projectRepo.GetByToken(token)
+func (ps *ProjectServiceImpl) GetProjectById(projectId int) (*models.Project, error) {
+	project, err := ps.projectRepo.GetById(projectId)
 	if err != nil {
 		return nil, err
 	}
-	if !ps.strategy.IsAccessible(project.UserId) {
+	if !ps.strategy.IsAccessibleByUserId(project.UserId) {
 		return nil, errors.New("user is not allowed to access the project")
 	}
 	return project, nil
 }
 
-func (ps *ProjectServiceImpl) GetProjectListByUserId(userId int) ([]models.Project, error) {
-	if !ps.strategy.IsAccessible(userId) {
-		return nil, errors.New("user is not allowed to access the project")
-	}
-	projectList, err := ps.projectRepo.GetByUserId(userId)
+func (ps *ProjectServiceImpl) GetProjectByToken(token string) (*models.Project, error) {
+	project, err := ps.projectRepo.GetByToken(token)
 	if err != nil {
 		return nil, err
 	}
+	if !ps.strategy.IsAccessibleByUserId(project.UserId) {
+		return nil, errors.New("user is not allowed to access the project")
+	}
+	return project, nil
+}
+
+func (ps *ProjectServiceImpl) GetProjectListByUserId(userId, filterUserId int) (projectList []models.Project, err error) {
+	if filterUserId != 0 {
+		if !ps.strategy.IsAccessibleByUserId(filterUserId) {
+			return []models.Project{}, nil
+		}
+		projectList, err = ps.projectRepo.GetByUserId(filterUserId)
+	}
+	projectList, err = ps.projectRepo.GetByUserId(userId)
 	return projectList, nil
 }
 
@@ -93,22 +106,44 @@ func (ps *ProjectServiceImpl) CreateProject(userId int, name string) error {
 	if ps.isProjectNameExist(name, projectList) {
 		return errors.New("project name already exists")
 	}
-	//TODO: count projects by user id for StartupStrategy
-	if !ps.strategy.IsAccessible(userId) {
+	if !ps.strategy.IsAccessibleByUserId(userId) {
 		return errors.New("user is not allowed to create a project")
 	}
-	var newProject = models.Project{
-		Token:  ps.generateToken(),
-		UserId: userId,
-		Name:   name,
+	if !ps.strategy.IsAccessibleByCountProjects(len(projectList)) {
+		return errors.New("out of projects limit")
 	}
-	if err := ps.projectRepo.Create(&newProject); err != nil {
+	newProject := NewProject(userId, name)
+	if err := ps.projectRepo.Create(newProject); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ps *ProjectServiceImpl) IsProjectExist(projectToken string) bool {
+func (ps *ProjectServiceImpl) UpdateProject(project *models.Project) error {
+	if !ps.strategy.IsAccessibleByUserId(project.UserId) {
+		return errors.New("user is not allowed to update the project")
+	}
+	if err := ps.projectRepo.Update(project); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ps *ProjectServiceImpl) DeleteProjectById(projectId int) error {
+	project, err := ps.projectRepo.GetById(projectId)
+	if err != nil {
+		return err
+	}
+	if !ps.strategy.IsAccessibleByUserId(project.UserId) {
+		return errors.New("user is not allowed to delete the project")
+	}
+	if err := ps.projectRepo.Delete(project); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ps *ProjectServiceImpl) IsProjectExistByToken(projectToken string) bool {
 	project, err := ps.projectRepo.GetByToken(projectToken)
 	if err != nil {
 		return false
@@ -123,12 +158,6 @@ func (ps *ProjectServiceImpl) SetStrategy(strategy Strategy) {
 	ps.strategy = strategy
 }
 
-func (ps *ProjectServiceImpl) generateToken() string {
-	rand.Seed(time.Now().Unix())
-	sum := sha256.Sum256([]byte(strconv.Itoa(rand.Int())))
-	return fmt.Sprintf("%x", sum)
-}
-
 func (ps *ProjectServiceImpl) isProjectNameExist(name string, projectList []models.Project) bool {
 	for _, project := range projectList {
 		if project.Name == name {
@@ -136,4 +165,18 @@ func (ps *ProjectServiceImpl) isProjectNameExist(name string, projectList []mode
 		}
 	}
 	return false
+}
+
+func NewProject(userId int, name string) *models.Project {
+	return &models.Project{
+		Token:  generateToken(),
+		UserId: userId,
+		Name:   name,
+	}
+}
+
+func generateToken() string {
+	rand.Seed(time.Now().Unix())
+	sum := sha256.Sum256([]byte(strconv.Itoa(rand.Int())))
+	return fmt.Sprintf("%x", sum)
 }

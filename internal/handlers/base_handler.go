@@ -21,9 +21,13 @@ func NewBaseHandler(mode string, log *logrus.Logger, projectService services.Pro
 	}
 }
 
-type ProjectRequest struct {
+type CreateProjectRequest struct {
 	UserId int    `json:"userId" validate:"required,number" example:"66"`
 	Name   string `json:"name" validate:"required,min=3,max=128" example:"bla-bla-bla.com"`
+}
+
+type UpdateProjectRequest struct {
+	Name string `json:"name" validate:"required,min=3,max=128" example:"bla-bla-bla.com"`
 }
 
 // Response is the type used for sending JSON around

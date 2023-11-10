@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"github.com/aerosystems/project-service/internal/services"
 	"github.com/labstack/echo/v4"
+	"net/http"
+	"strconv"
 )
 
 // GetProjectList godoc
@@ -10,43 +13,34 @@ import (
 // @Accept  json
 // @Produce application/json
 // @Security BearerAuth
+// @Param	userId	query	int	false "UserId"
 // @Success 200 {object} Response{data=[]models.Project}
 // @Failure 401 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects [get]
 func (h *BaseHandler) GetProjectList(c echo.Context) (err error) {
-	//// receive AccessToken Claims from context middleware
-	//accessTokenClaims, ok := r.Context().Value(helpers.ContextKey("accessTokenClaims")).(*AuthService.AccessTokenClaims)
-	//if !ok {
-	//	err := errors.New("could not get token claims from Access Token")
-	//	_ = WriteResponse(w, http.StatusUnauthorized, NewErrorPayload(401001, "could not get token claims from Access Token", err))
-	//	return
-	//}
-	//
-	//projects, err := h.projectRepo.GetByUserId(accessTokenClaims.UserId)
-	//if err != nil {
-	//	err := errors.New("could not get projects by UserId")
-	//	_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500001, "could not get projects by UserId", err))
-	//	return
-	//}
-	//if len(projects) == 0 {
-	//	err := errors.New("projects not found")
-	//	_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404001, "projects not found", err))
-	//	return
-	//}
-	//
-	//payload := NewResponsePayload("projects successfully found", projects)
-	//_ = WriteResponse(w, http.StatusOK, payload)
-	return nil
+	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
+	filterUserId, err := strconv.Atoi(c.QueryParam("userId"))
+	if err != nil {
+		return h.ErrorResponse(c, http.StatusBadRequest, "request query param should be integer", err)
+	}
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
+		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+	}
+	projectList, err := h.projectService.GetProjectListByUserId(accessTokenClaims.UserId, filterUserId)
+	if err != nil {
+		return h.ErrorResponse(c, http.StatusInternalServerError, "could not get projects", err)
+	}
+	return h.SuccessResponse(c, http.StatusOK, "projects successfully found", projectList)
 }
 
 // GetProject godoc
-// @Summary get project by Project ID
+// @Summary get project by ProjectId
 // @Tags projects
 // @Accept  json
 // @Produce application/json
-// @Param	projectID	path	string	true "Project ID"
+// @Param	projectId	path	string	true "ProjectId"
 // @Security BearerAuth
 // @Success 200 {object} Response{data=models.Project}
 // @Failure 400 {object} ErrorResponse
@@ -55,38 +49,21 @@ func (h *BaseHandler) GetProjectList(c echo.Context) (err error) {
 // @Failure 404 {object} ErrorResponse
 // @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /v1/projects/{projectID} [get]
+// @Router /v1/projects/{projectId} [get]
 func (h *BaseHandler) GetProject(c echo.Context) error {
-	//// receive AccessToken Claims from context middleware
-	//accessTokenClaims, ok := r.Context().Value(helpers.ContextKey("accessTokenClaims")).(*AuthService.AccessTokenClaims)
-	//if !ok {
-	//	err := errors.New("could not get token claims from Access Token")
-	//	_ = WriteResponse(w, http.StatusUnauthorized, NewErrorPayload(401001, "could not get token claims from Access Token", err))
-	//	return
-	//}
-	//projectID, err := strconv.Atoi(chi.URLParam(r, "projectID"))
-	//if err != nil {
-	//	_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422002, "request path param should be integer", err))
-	//	return
-	//}
-	//
-	//project, err := h.projectRepo.GetById(projectID)
-	//if err != nil && err != gorm.ErrRecordNotFound {
-	//	_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(500001, "could not find Project by Project ID", err))
-	//	return
-	//}
-	//
-	//if project == nil {
-	//	_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404001, "project not found", err))
-	//	return
-	//}
-	//
-	//if project.UserId != accessTokenClaims.UserId {
-	//	err := errors.New("project does not belong to user")
-	//	_ = WriteResponse(w, http.StatusForbidden, NewErrorPayload(403001, "project does not belong to user", err))
-	//	return
-	//}
-	//
-	//_ = WriteResponse(w, http.StatusOK, NewResponsePayload(fmt.Sprintf("project ID %d successfully found", projectID), project))
-	return nil
+	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
+	projectId, err := strconv.Atoi(c.Param("projectId"))
+	if err != nil {
+		return h.ErrorResponse(c, http.StatusBadRequest, "request path param should be integer", err)
+	}
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
+		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+	}
+	project, err := h.projectService.GetProjectById(projectId)
+	if err != nil && project == nil {
+		return h.ErrorResponse(c, http.StatusNotFound, "project not found", err)
+	} else {
+		return h.ErrorResponse(c, http.StatusForbidden, "user does not have access to this project", err)
+	}
+	return h.SuccessResponse(c, http.StatusOK, "project successfully found", project)
 }

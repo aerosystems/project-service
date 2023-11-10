@@ -1,21 +1,18 @@
 package handlers
 
 import (
+	"github.com/aerosystems/project-service/internal/services"
 	"github.com/labstack/echo/v4"
-	"time"
+	"net/http"
+	"strconv"
 )
 
-type UpdateProjectRequest struct {
-	Name       string    `json:"name" example:"bla-bla-bla.com"`
-	AccessTime time.Time `json:"accessTime" example:"2027-03-03T08:15:00Z"`
-}
-
 // ProjectUpdate godoc
-// @Summary update project by Project ID
+// @Summary update project by ProjectId
 // @Tags projects
 // @Accept  json
 // @Produce application/json
-// @Param	projectID	path	string	true "Project ID"
+// @Param	projectId	path	string	true "ProjectId"
 // @Param comment body UpdateProjectRequest true "raw request body"
 // @Security BearerAuth
 // @Success 200 {object} Response{data=models.Project}
@@ -26,58 +23,29 @@ type UpdateProjectRequest struct {
 // @Failure 409 {object} ErrorResponse
 // @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /v1/projects/{projectID} [patch]
+// @Router /v1/projects/{projectId} [patch]
 func (h *BaseHandler) ProjectUpdate(c echo.Context) error {
-	//// receive AccessToken Claims from context middleware
-	//accessTokenClaims, ok := r.Context().Value(helpers.ContextKey("accessTokenClaims")).(*AuthService.AccessTokenClaims)
-	//if !ok {
-	//	err := errors.New("could not get token claims from Access Token")
-	//	_ = WriteResponse(w, http.StatusUnauthorized, NewErrorPayload(401001, "could not get token claims from Access Token", err))
-	//	return
-	//}
-	//projectID, err := strconv.Atoi(chi.URLParam(r, "projectID"))
-	//if err != nil {
-	//	_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422002, "request path param should be integer", err))
-	//	return
-	//}
-	//
-	//var requestPayload UpdateProjectRequest
-	//if err := ReadRequest(w, r, &requestPayload); err != nil {
-	//	_ = WriteResponse(w, http.StatusUnprocessableEntity, NewErrorPayload(422001, "request payload is incorrect", err))
-	//	return
-	//}
-	//
-	//project, err := h.projectRepo.GetById(projectID)
-	//if errors.Is(err, gorm.ErrRecordNotFound) || strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-	//	err := fmt.Errorf("project ID %d does not exist", projectID)
-	//	_ = WriteResponse(w, http.StatusNotFound, NewErrorPayload(404005, "project ID does not exist", err))
-	//	return
-	//}
-	//if err != nil {
-	//	_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500101, "could not compare new Project with projects", err))
-	//	return
-	//}
-	//
-	//if requestPayload.Name != "" {
-	//	project.Name = requestPayload.Name
-	//}
-	//
-	//// restrict access to project for users with role "startup" or "business"
-	//if project.UserId != accessTokenClaims.UserId && helpers.Contains([]string{"startup", "business"}, accessTokenClaims.UserRole) {
-	//	err := errors.New("user does not have access to this project")
-	//	_ = WriteResponse(w, http.StatusForbidden, NewErrorPayload(403001, err.Error(), err))
-	//	return
-	//}
-	//
-	//if err = h.projectRepo.Update(project); err != nil {
-	//	if errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-	//		_ = WriteResponse(w, http.StatusConflict, NewErrorPayload(409105, "user does not have the same project names", err))
-	//		return
-	//	}
-	//	_ = WriteResponse(w, http.StatusInternalServerError, NewErrorPayload(500104, "could not update project", err))
-	//	return
-	//}
-	//
-	//_ = WriteResponse(w, http.StatusOK, NewResponsePayload("project successfully updated", project))
-	return nil
+	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
+	projectId, err := strconv.Atoi(c.Param("projectId"))
+	if err != nil {
+		return h.ErrorResponse(c, http.StatusBadRequest, "request path param should be integer", err)
+	}
+	var requestPayload UpdateProjectRequest
+	if err := c.Bind(&requestPayload); err != nil {
+		return h.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
+	}
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
+		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+	}
+	project, err := h.projectService.GetProjectById(projectId)
+	if err != nil && project == nil {
+		return h.ErrorResponse(c, http.StatusNotFound, "project not found", err)
+	} else {
+		return h.ErrorResponse(c, http.StatusForbidden, "user does not have access to this project", err)
+	}
+	project.Name = requestPayload.Name
+	if err := h.projectService.UpdateProject(project); err != nil {
+		return h.ErrorResponse(c, http.StatusInternalServerError, "could not update project", err)
+	}
+	return h.SuccessResponse(c, http.StatusOK, "project successfully updated", project)
 }

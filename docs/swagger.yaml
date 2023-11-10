@@ -1,10 +1,24 @@
 basePath: /
 definitions:
+  handlers.CreateProjectRequest:
+    properties:
+      name:
+        example: bla-bla-bla.com
+        maxLength: 128
+        minLength: 3
+        type: string
+      userId:
+        example: 66
+        type: integer
+    required:
+    - name
+    - userId
+    type: object
   handlers.ErrorResponse:
     properties:
       code:
         type: integer
-      data: {}
+      error: {}
       message:
         type: string
     type: object
@@ -16,12 +30,13 @@ definitions:
     type: object
   handlers.UpdateProjectRequest:
     properties:
-      accessTime:
-        example: "2027-03-03T08:15:00Z"
-        type: string
       name:
         example: bla-bla-bla.com
+        maxLength: 128
+        minLength: 3
         type: string
+    required:
+    - name
     type: object
   models.Project:
     properties:
@@ -38,16 +53,7 @@ definitions:
         example: 666
         type: integer
     type: object
-  transform.CreateProjectRequest:
-    properties:
-      name:
-        example: bla-bla-bla.com
-        type: string
-      userId:
-        example: 66
-        type: integer
-    type: object
-host: localhost:8082
+host: gw.verifire.com/project
 info:
   contact:
     name: Artem Kostenko
@@ -64,6 +70,11 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: UserId
+        in: query
+        name: userId
+        type: integer
       produces:
       - application/json
       responses:
@@ -104,12 +115,12 @@ paths:
         name: comment
         required: true
         schema:
-          $ref: '#/definitions/transform.CreateProjectRequest'
+          $ref: '#/definitions/handlers.CreateProjectRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             allOf:
             - $ref: '#/definitions/handlers.Response'
@@ -129,10 +140,6 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
@@ -146,14 +153,14 @@ paths:
       summary: create project
       tags:
       - projects
-  /v1/projects/{projectID}:
+  /v1/projects/{projectId}:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: Project ID
+      - description: ProjectId
         in: path
-        name: projectID
+        name: projectId
         required: true
         type: string
       produces:
@@ -179,26 +186,22 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: delete project by Project ID
+      summary: delete project by ProjectId
       tags:
       - projects
     get:
       consumes:
       - application/json
       parameters:
-      - description: Project ID
+      - description: ProjectId
         in: path
-        name: projectID
+        name: projectId
         required: true
         type: string
       produces:
@@ -239,16 +242,16 @@ paths:
             $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: get project by Project ID
+      summary: get project by ProjectId
       tags:
       - projects
     patch:
       consumes:
       - application/json
       parameters:
-      - description: Project ID
+      - description: ProjectId
         in: path
-        name: projectID
+        name: projectId
         required: true
         type: string
       - description: raw request body
@@ -299,7 +302,7 @@ paths:
             $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: update project by Project ID
+      summary: update project by ProjectId
       tags:
       - projects
   /v1/token/validate:
@@ -322,6 +325,8 @@ paths:
       summary: validate token
       tags:
       - token
+schemes:
+- https
 securityDefinitions:
   BearerAuth:
     description: Should contain Access JWT Token, with the Bearer started

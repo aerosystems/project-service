@@ -39,6 +39,14 @@ const docTemplate = `{
                     "projects"
                 ],
                 "summary": "get all projects. Result depends on user role",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "UserId",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -104,13 +112,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/transform.CreateProjectRequest"
+                            "$ref": "#/definitions/handlers.CreateProjectRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "allOf": [
                                 {
@@ -145,12 +153,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
@@ -166,7 +168,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/projects/{projectID}": {
+        "/v1/projects/{projectId}": {
             "get": {
                 "security": [
                     {
@@ -182,12 +184,12 @@ const docTemplate = `{
                 "tags": [
                     "projects"
                 ],
-                "summary": "get project by Project ID",
+                "summary": "get project by ProjectId",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
-                        "name": "projectID",
+                        "description": "ProjectId",
+                        "name": "projectId",
                         "in": "path",
                         "required": true
                     }
@@ -264,12 +266,12 @@ const docTemplate = `{
                 "tags": [
                     "projects"
                 ],
-                "summary": "delete project by Project ID",
+                "summary": "delete project by ProjectId",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
-                        "name": "projectID",
+                        "description": "ProjectId",
+                        "name": "projectId",
                         "in": "path",
                         "required": true
                     }
@@ -305,12 +307,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -334,12 +330,12 @@ const docTemplate = `{
                 "tags": [
                     "projects"
                 ],
-                "summary": "update project by Project ID",
+                "summary": "update project by ProjectId",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
-                        "name": "projectID",
+                        "description": "ProjectId",
+                        "name": "projectId",
                         "in": "path",
                         "required": true
                     },
@@ -452,13 +448,32 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handlers.CreateProjectRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "userId"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 3,
+                    "example": "bla-bla-bla.com"
+                },
+                "userId": {
+                    "type": "integer",
+                    "example": 66
+                }
+            }
+        },
         "handlers.ErrorResponse": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer"
                 },
-                "data": {},
+                "error": {},
                 "message": {
                     "type": "string"
                 }
@@ -475,13 +490,14 @@ const docTemplate = `{
         },
         "handlers.UpdateProjectRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
-                "accessTime": {
-                    "type": "string",
-                    "example": "2027-03-03T08:15:00Z"
-                },
                 "name": {
                     "type": "string",
+                    "maxLength": 128,
+                    "minLength": 3,
                     "example": "bla-bla-bla.com"
                 }
             }
@@ -506,19 +522,6 @@ const docTemplate = `{
                     "example": 666
                 }
             }
-        },
-        "transform.CreateProjectRequest": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "bla-bla-bla.com"
-                },
-                "userId": {
-                    "type": "integer",
-                    "example": 66
-                }
-            }
         }
     },
     "securityDefinitions": {
@@ -540,9 +543,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.6",
-	Host:             "localhost:8082",
+	Host:             "gw.verifire.com/project",
 	BasePath:         "/",
-	Schemes:          []string{},
+	Schemes:          []string{"https"},
 	Title:            "Project Service",
 	Description:      "A part of microservice infrastructure, who responsible for managing user Projects",
 	InfoInstanceName: "swagger",

@@ -11,9 +11,9 @@ import (
 // @Tags projects
 // @Accept  json
 // @Produce application/json
-// @Param comment body transform.CreateProjectRequest true "raw request body"
+// @Param comment body CreateProjectRequest true "raw request body"
 // @Security BearerAuth
-// @Success 200 {object} Response{data=models.Project}
+// @Success 201 {object} Response{data=models.Project}
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 403 {object} ErrorResponse
@@ -22,7 +22,7 @@ import (
 // @Router /v1/projects [post]
 func (h *BaseHandler) ProjectCreate(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
-	var requestPayload ProjectRequest
+	var requestPayload CreateProjectRequest
 	if err := c.Bind(&requestPayload); err != nil {
 		return h.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
 	}
@@ -32,5 +32,5 @@ func (h *BaseHandler) ProjectCreate(c echo.Context) error {
 	if err := h.projectService.CreateProject(requestPayload.UserId, requestPayload.Name); err != nil {
 		return h.ErrorResponse(c, http.StatusInternalServerError, "could not create default project", err)
 	}
-	return nil
+	return h.SuccessResponse(c, http.StatusCreated, "project successfully created", nil)
 }

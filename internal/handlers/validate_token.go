@@ -16,7 +16,7 @@ import (
 // @Router /v1/token/validate [get]
 func (h *BaseHandler) ValidateToken(c echo.Context) error {
 	token := c.Request().Header.Get("X-Api-Key")
-	if h.projectService.IsProjectExist(token) {
+	if h.projectService.IsProjectExistByToken(token) {
 		return h.ErrorResponse(c, http.StatusUnauthorized, "could not get Project by Token", nil)
 	}
 	return c.JSON(http.StatusNoContent, nil)
