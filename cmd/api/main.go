@@ -82,6 +82,12 @@ func main() {
 		errChan <- e.Start(fmt.Sprintf(":%d", webPort))
 	}()
 
-	err := <-errChan
-	log.Fatal(err)
+	for {
+		select {
+		case err := <-errChan:
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
 }
