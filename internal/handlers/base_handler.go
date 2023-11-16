@@ -22,8 +22,8 @@ func NewBaseHandler(mode string, log *logrus.Logger, projectService services.Pro
 }
 
 type CreateProjectRequest struct {
-	UserId int    `json:"userId" validate:"required,number" example:"66"`
-	Name   string `json:"name" validate:"required,min=3,max=128" example:"bla-bla-bla.com"`
+	UserUuid string `json:"userUuid" validate:"required,number" example:"66"`
+	Name     string `json:"name" validate:"required,min=3,max=128" example:"bla-bla-bla.com"`
 }
 
 type UpdateProjectRequest struct {

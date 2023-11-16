@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/aerosystems/project-service/internal/services"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -13,7 +14,7 @@ import (
 // @Accept  json
 // @Produce application/json
 // @Security BearerAuth
-// @Param	userId	query	int	false "UserId"
+// @Param	userUuid	query	string	false "UserUuid"
 // @Success 200 {object} Response{data=[]models.Project}
 // @Failure 401 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
@@ -21,14 +22,18 @@ import (
 // @Router /v1/projects [get]
 func (h *BaseHandler) GetProjectList(c echo.Context) (err error) {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
-	filterUserId, err := strconv.Atoi(c.QueryParam("userId"))
+	filterUserUuid, err := uuid.Parse(c.QueryParam("userUuid"))
 	if err != nil {
-		return h.ErrorResponse(c, http.StatusBadRequest, "request query param should be integer", err)
+		return h.ErrorResponse(c, http.StatusBadRequest, "user uuid is incorrect", err)
 	}
-	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
 		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
 	}
-	projectList, err := h.projectService.GetProjectListByUserId(accessTokenClaims.UserId, filterUserId)
+	userUuid, err := uuid.Parse(accessTokenClaims.UserUuid)
+	if err != nil {
+		return h.ErrorResponse(c, http.StatusBadRequest, "user uuid is incorrect", err)
+	}
+	projectList, err := h.projectService.GetProjectListByUserUuid(userUuid, filterUserUuid)
 	if err != nil {
 		return h.ErrorResponse(c, http.StatusInternalServerError, "could not get projects", err)
 	}
@@ -56,7 +61,7 @@ func (h *BaseHandler) GetProject(c echo.Context) error {
 	if err != nil {
 		return h.ErrorResponse(c, http.StatusBadRequest, "request path param should be integer", err)
 	}
-	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
 		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
 	}
 	project, err := h.projectService.GetProjectById(projectId)

@@ -6,8 +6,8 @@ import (
 )
 
 type AccessTokenClaims struct {
-	AccessUUID string `json:"accessUuid"`
-	UserId     int    `json:"userId"`
+	AccessUuid string `json:"accessUuid"`
+	UserUuid   string `json:"userUuid"`
 	UserRole   string `json:"userRole"`
 	Exp        int    `json:"exp"`
 	jwt.StandardClaims

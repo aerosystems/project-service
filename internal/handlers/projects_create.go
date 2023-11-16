@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/aerosystems/project-service/internal/services"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -26,10 +27,14 @@ func (h *BaseHandler) ProjectCreate(c echo.Context) error {
 	if err := c.Bind(&requestPayload); err != nil {
 		return h.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
 	}
-	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
 		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
 	}
-	if err := h.projectService.CreateProject(requestPayload.UserId, requestPayload.Name); err != nil {
+	userUuid, err := uuid.Parse(requestPayload.UserUuid)
+	if err != nil {
+		return h.ErrorResponse(c, http.StatusBadRequest, "user uuid is incorrect", err)
+	}
+	if err := h.projectService.CreateProject(userUuid, requestPayload.Name); err != nil {
 		return h.ErrorResponse(c, http.StatusInternalServerError, "could not create default project", err)
 	}
 	return h.SuccessResponse(c, http.StatusCreated, "project successfully created", nil)

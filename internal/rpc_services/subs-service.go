@@ -1,11 +1,12 @@
 package RPCServices
 
 import (
+	"github.com/google/uuid"
 	"net/rpc"
 )
 
 type SubscriptionService interface {
-	GetSubscriptionKind(userId int) (string, error)
+	GetSubscriptionKind(userUuid uuid.UUID) (string, error)
 }
 
 type SubscriptionRPC struct {
@@ -19,14 +20,14 @@ func NewSubsRPC(rpcClient *rpc.Client) *SubscriptionRPC {
 }
 
 type SubscriptionRPCPayload struct {
-	UserId int
-	Kind   string
+	UserUuid uuid.UUID
+	Kind     string
 }
 
-func (sr *SubscriptionRPC) GetSubscriptionKind(userId int) (string, error) {
+func (sr *SubscriptionRPC) GetSubscriptionKind(userUuid uuid.UUID) (string, error) {
 	var resSub SubscriptionRPCPayload
 	err := sr.rpcClient.Call("SubsServer.GetSubscription", SubscriptionRPCPayload{
-		UserId: userId,
+		UserUuid: userUuid,
 	}, &resSub)
 	if err != nil {
 		return "", err

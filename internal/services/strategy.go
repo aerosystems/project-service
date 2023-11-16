@@ -1,16 +1,18 @@
 package services
 
+import "github.com/google/uuid"
+
 type Strategy interface {
-	IsAccessibleByUserId(userId int) bool
+	IsAccessibleByUserUuid(userUuid uuid.UUID) bool
 	IsAccessibleByCountProjects(countProjects int) bool
 }
 
 type StartupStrategy struct {
-	strategyOwnerId int
+	strategyOwnerUuid uuid.UUID
 }
 
-func (ss *StartupStrategy) IsAccessibleByUserId(userId int) bool {
-	if ss.strategyOwnerId != userId {
+func (ss *StartupStrategy) IsAccessibleByUserUuid(userUuid uuid.UUID) bool {
+	if ss.strategyOwnerUuid != userUuid {
 		return false
 	}
 	return true
@@ -24,11 +26,11 @@ func (ss *StartupStrategy) IsAccessibleByCountProjects(countProjects int) bool {
 }
 
 type BusinessStrategy struct {
-	strategyOwnerId int
+	strategyOwnerUuid uuid.UUID
 }
 
-func (bs *BusinessStrategy) IsAccessibleByUserId(userId int) bool {
-	if bs.strategyOwnerId != userId {
+func (bs *BusinessStrategy) IsAccessibleByUserUuid(userUuid uuid.UUID) bool {
+	if bs.strategyOwnerUuid != userUuid {
 		return false
 	}
 	return true
@@ -39,10 +41,10 @@ func (bs *BusinessStrategy) IsAccessibleByCountProjects(countProjects int) bool 
 }
 
 type StaffStrategy struct {
-	strategyOwnerId int
+	strategyOwnerUuid uuid.UUID
 }
 
-func (sf *StaffStrategy) IsAccessibleByUserId(userId int) bool {
+func (sf *StaffStrategy) IsAccessibleByUserUuid(userUuid uuid.UUID) bool {
 	return true
 }
 

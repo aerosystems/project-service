@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"github.com/aerosystems/project-service/internal/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -40,9 +41,9 @@ func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
 	return &project, nil
 }
 
-func (r *ProjectRepo) GetByUserId(UserId int) ([]models.Project, error) {
+func (r *ProjectRepo) GetByUserUuid(userUuid uuid.UUID) ([]models.Project, error) {
 	var projects []models.Project
-	result := r.db.Find(&projects, "user_id = ?", UserId)
+	result := r.db.Find(&projects, "user_uuid = ?", userUuid.String())
 	if result.Error != nil {
 		return nil, result.Error
 	}

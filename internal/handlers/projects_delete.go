@@ -27,7 +27,7 @@ func (h *BaseHandler) ProjectDelete(c echo.Context) error {
 	if err != nil {
 		return h.ErrorResponse(c, http.StatusBadRequest, "request path param should be integer", err)
 	}
-	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserId, accessTokenClaims.UserRole); err != nil {
+	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
 		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
 	}
 	if project, err := h.projectService.GetProjectById(projectId); err != nil && project == nil {
