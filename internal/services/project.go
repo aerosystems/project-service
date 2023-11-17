@@ -16,7 +16,7 @@ type ProjectService interface {
 	DetermineStrategy(userUuidStr string, role string) error
 	GetProjectById(projectId int) (*models.Project, error)
 	GetProjectByToken(token string) (*models.Project, error)
-	GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) ([]models.Project, error)
+	GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error)
 	CreateProject(userUuid uuid.UUID, name string) error
 	CreateDefaultProject(userUuid uuid.UUID) error
 	UpdateProject(project *models.Project) error
