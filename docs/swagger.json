@@ -38,9 +38,9 @@
                 "summary": "get all projects. Result depends on user role",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "UserId",
-                        "name": "userId",
+                        "type": "string",
+                        "description": "UserUuid",
+                        "name": "userUuid",
                         "in": "query"
                     }
                 ],
@@ -449,7 +449,7 @@
             "type": "object",
             "required": [
                 "name",
-                "userId"
+                "userUuid"
             ],
             "properties": {
                 "name": {
@@ -458,9 +458,9 @@
                     "minLength": 3,
                     "example": "bla-bla-bla.com"
                 },
-                "userId": {
-                    "type": "integer",
-                    "example": 66
+                "userUuid": {
+                    "type": "string",
+                    "example": "66"
                 }
             }
         },
@@ -515,8 +515,8 @@
                     "example": "38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f"
                 },
                 "userId": {
-                    "type": "integer",
-                    "example": 666
+                    "type": "string",
+                    "example": "666"
                 }
             }
         }

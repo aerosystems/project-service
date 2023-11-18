@@ -48,9 +48,12 @@ func (ps *ProjectServiceImpl) DetermineStrategy(userUuidStr string, role string)
 		ps.SetStrategy(&StaffStrategy{userUuid})
 		return nil
 	}
-	kind, err := ps.subsRPC.GetSubscriptionKind(userUuid)
+	kind, accessTime, err := ps.subsRPC.GetSubscription(userUuid)
 	if err != nil {
-		return errors.New("failed to get subscription kind")
+		return err
+	}
+	if accessTime.Before(time.Now()) {
+		return errors.New("subscription is expired")
 	}
 	switch kind {
 	case "startup":

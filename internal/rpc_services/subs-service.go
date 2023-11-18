@@ -1,36 +1,37 @@
 package RPCServices
 
 import (
+	"github.com/aerosystems/project-service/internal/models"
+	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/google/uuid"
-	"net/rpc"
+	"time"
 )
 
 type SubscriptionService interface {
-	GetSubscriptionKind(userUuid uuid.UUID) (string, error)
+	GetSubscription(userUuid uuid.UUID) (models.KindSubscription, int, error)
 }
 
 type SubscriptionRPC struct {
-	rpcClient *rpc.Client
+	rpcClient *RPCClient.ReconnectRPCClient
 }
 
-func NewSubsRPC(rpcClient *rpc.Client) *SubscriptionRPC {
+func NewSubsRPC(rpcClient *RPCClient.ReconnectRPCClient) *SubscriptionRPC {
 	return &SubscriptionRPC{
 		rpcClient: rpcClient,
 	}
 }
 
-type SubscriptionRPCPayload struct {
-	UserUuid uuid.UUID
-	Kind     string
+type SubsRPCPayload struct {
+	UserUuid   uuid.UUID
+	Kind       models.KindSubscription
+	AccessTime time.Time
 }
 
-func (sr *SubscriptionRPC) GetSubscriptionKind(userUuid uuid.UUID) (string, error) {
-	var resSub SubscriptionRPCPayload
-	err := sr.rpcClient.Call("SubsServer.GetSubscription", SubscriptionRPCPayload{
-		UserUuid: userUuid,
-	}, &resSub)
+func (sr *SubscriptionRPC) GetSubscription(userUuid uuid.UUID) (models.KindSubscription, time.Time, error) {
+	var resSub SubsRPCPayload
+	err := sr.rpcClient.Call("SubsServer.GetSubscription", userUuid, &resSub)
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-	return resSub.Kind, nil
+	return resSub.Kind, resSub.AccessTime, nil
 }

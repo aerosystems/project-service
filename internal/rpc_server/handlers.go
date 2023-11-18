@@ -1,6 +1,9 @@
 package RPCServer
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"log"
+)
 
 type ProjectRPCPayload struct {
 	Id       int
@@ -19,6 +22,7 @@ func NewProjectRPCPayload(id int, UserUuid uuid.UUID, name string, token string)
 }
 
 func (ps *ProjectServer) CreateDefaultProject(projectPayload ProjectRPCPayload, resp *ProjectRPCPayload) error {
+	log.Println("CreateDefaultProject", projectPayload)
 	if err := ps.projectService.DetermineStrategy(projectPayload.UserUuid.String(), "customer"); err != nil {
 		return err
 	}

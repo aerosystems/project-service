@@ -7,12 +7,12 @@ definitions:
         maxLength: 128
         minLength: 3
         type: string
-      userId:
-        example: 66
-        type: integer
+      userUuid:
+        example: "66"
+        type: string
     required:
     - name
-    - userId
+    - userUuid
     type: object
   handlers.ErrorResponse:
     properties:
@@ -50,8 +50,8 @@ definitions:
         example: 38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f
         type: string
       userId:
-        example: 666
-        type: integer
+        example: "666"
+        type: string
     type: object
 host: gw.verifire.com/project
 info:
@@ -71,10 +71,10 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: UserId
+      - description: UserUuid
         in: query
-        name: userId
-        type: integer
+        name: userUuid
+        type: string
       produces:
       - application/json
       responses:
