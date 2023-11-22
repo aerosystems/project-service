@@ -1,8 +1,9 @@
 package repository
 
 import (
-	"github.com/aerosystems/project-service/internal/helpers"
+	"errors"
 	"github.com/aerosystems/project-service/internal/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,36 +17,40 @@ func NewProjectRepo(db *gorm.DB) *ProjectRepo {
 	}
 }
 
-func (r *ProjectRepo) FindByID(ID int) (*models.Project, error) {
+func (r *ProjectRepo) GetById(Id int) (*models.Project, error) {
 	var project models.Project
-	result := r.db.First(&project, ID)
+	result := r.db.First(&project, Id)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, result.Error
 	}
 	return &project, nil
 }
 
-func (r *ProjectRepo) FindByToken(Token string) (*models.Project, error) {
+func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
 	var project models.Project
 	result := r.db.First(&project, "token = ?", Token)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, result.Error
 	}
 	return &project, nil
 }
 
-// FindByUserID TODO must return array of Projects
-func (r *ProjectRepo) FindByUserID(UserID int) (*models.Project, error) {
-	var project models.Project
-	result := r.db.First(&project, "user_id = ?", UserID)
+func (r *ProjectRepo) GetByUserUuid(userUuid uuid.UUID) ([]models.Project, error) {
+	var projects []models.Project
+	result := r.db.Find(&projects, "user_uuid = ?", userUuid.String())
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &project, nil
+	return projects, nil
 }
 
 func (r *ProjectRepo) Create(project *models.Project) error {
-	project.Token = helpers.GenerateToken()
 	result := r.db.Create(&project)
 	if result.Error != nil {
 		return result.Error

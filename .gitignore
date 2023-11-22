@@ -1,3 +1,6 @@
-project-service.bin
 .idea
 .DS_Store
+*.bin
+.env*
+logs/*
+filebeat/certs/*
