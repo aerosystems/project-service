@@ -63,9 +63,16 @@ func main() {
 	baseHandler := handlers.NewBaseHandler(os.Getenv("APP_ENV"), log.Logger, projectService)
 	projectServer := RPCServer.NewProjectServer(rpcPort, log.Logger, projectService)
 
-	app := NewConfig(baseHandler)
+	accessTokenService := services.NewAccessTokenServiceImpl(os.Getenv("ACCESS_SECRET"))
+
+	oauthMiddleware := middleware.NewOAuthMiddlewareImpl(accessTokenService)
+	basicAuthMiddleware := middleware.NewBasicAuthMiddlewareImpl(os.Getenv("BASIC_AUTH_DOCS_USERNAME"), os.Getenv("BASIC_AUTH_DOCS_PASSWORD"))
+
+	app := NewConfig(baseHandler, oauthMiddleware, basicAuthMiddleware)
 	e := app.NewRouter()
-	middleware.AddMiddleware(e, log.Logger)
+	middleware.AddLog(e, log.Logger)
+	middleware.AddCORS(e)
+
 	validator := validator.New()
 	e.Validator = &validators.CustomValidator{Validator: validator}
 
