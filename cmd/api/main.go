@@ -71,7 +71,6 @@ func main() {
 	app := NewConfig(baseHandler, oauthMiddleware, basicAuthMiddleware)
 	e := app.NewRouter()
 	middleware.AddLog(e, log.Logger)
-	middleware.AddCORS(e)
 
 	validator := validator.New()
 	e.Validator = &validators.CustomValidator{Validator: validator}

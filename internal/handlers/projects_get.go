@@ -22,7 +22,11 @@ import (
 // @Router /v1/projects [get]
 func (h *BaseHandler) GetProjectList(c echo.Context) (err error) {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
-	filterUserUuid, err := uuid.Parse(c.QueryParam("userUuid"))
+	uuidStr := c.QueryParam("userUuid")
+	if len(uuidStr) == 0 {
+		uuidStr = accessTokenClaims.UserUuid
+	}
+	filterUserUuid, err := uuid.Parse(uuidStr)
 	if err != nil {
 		return h.ErrorResponse(c, http.StatusBadRequest, "user uuid is incorrect", err)
 	}
@@ -65,10 +69,11 @@ func (h *BaseHandler) GetProject(c echo.Context) error {
 		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
 	}
 	project, err := h.projectService.GetProjectById(projectId)
-	if err != nil && project == nil {
-		return h.ErrorResponse(c, http.StatusNotFound, "project not found", err)
-	} else {
+	if err != nil {
 		return h.ErrorResponse(c, http.StatusForbidden, "user does not have access to this project", err)
+	}
+	if project == nil {
+		return h.ErrorResponse(c, http.StatusNotFound, "project not found", nil)
 	}
 	return h.SuccessResponse(c, http.StatusOK, "project successfully found", project)
 }
