@@ -3,8 +3,9 @@ package models
 type KindSubscription string
 
 const (
-	Startup  KindSubscription = "startup"
-	Business KindSubscription = "business"
+	TrialSubscription    KindSubscription = "trial"
+	StartupSubscription  KindSubscription = "startup"
+	BusinessSubscription KindSubscription = "business"
 )
 
 func (k KindSubscription) String() string {

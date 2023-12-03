@@ -44,7 +44,7 @@ func (ps *ProjectServiceImpl) DetermineStrategy(userUuidStr string, role string)
 	if err != nil {
 		return err
 	}
-	if role == "staff" {
+	if role == models.StaffRole.String() {
 		ps.SetStrategy(&StaffStrategy{userUuid})
 		return nil
 	}
@@ -52,13 +52,17 @@ func (ps *ProjectServiceImpl) DetermineStrategy(userUuidStr string, role string)
 	if err != nil {
 		return err
 	}
-	if accessTime.Before(time.Now()) {
-		return errors.New("subscription is expired")
-	}
+	// TODO: is it necessary?
+	_ = accessTime
+	//if accessTime.Before(time.Now()) {
+	//	return errors.New("subscription is expired")
+	//}
 	switch kind {
-	case "startup":
+	case models.TrialSubscription:
+		fallthrough
+	case models.StartupSubscription:
 		ps.SetStrategy(&StartupStrategy{userUuid})
-	case "business":
+	case models.BusinessSubscription:
 		ps.SetStrategy(&BusinessStrategy{userUuid})
 	default:
 		return errors.New("unknown subscription kind")

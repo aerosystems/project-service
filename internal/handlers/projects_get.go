@@ -31,7 +31,7 @@ func (h *BaseHandler) GetProjectList(c echo.Context) (err error) {
 		return h.ErrorResponse(c, http.StatusBadRequest, "user uuid is incorrect", err)
 	}
 	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+		return h.ErrorResponse(c, http.StatusForbidden, "getting project is forbidden", err)
 	}
 	userUuid, err := uuid.Parse(accessTokenClaims.UserUuid)
 	if err != nil {
@@ -66,7 +66,7 @@ func (h *BaseHandler) GetProject(c echo.Context) error {
 		return h.ErrorResponse(c, http.StatusBadRequest, "request path param should be integer", err)
 	}
 	if err := h.projectService.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return h.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+		return h.ErrorResponse(c, http.StatusForbidden, "getting project is forbidden", err)
 	}
 	project, err := h.projectService.GetProjectById(projectId)
 	if err != nil {

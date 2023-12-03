@@ -517,7 +517,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f"
                 },
-                "userId": {
+                "userUuid": {
                     "type": "string",
                     "example": "666"
                 }
