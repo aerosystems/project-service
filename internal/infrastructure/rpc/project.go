@@ -2,7 +2,6 @@ package RPCServer
 
 import (
 	"github.com/google/uuid"
-	"log"
 )
 
 type ProjectRPCPayload struct {
@@ -21,19 +20,18 @@ func NewProjectRPCPayload(id int, UserUuid uuid.UUID, name string, token string)
 	}
 }
 
-func (ps *ProjectServer) CreateDefaultProject(projectPayload ProjectRPCPayload, resp *ProjectRPCPayload) error {
-	log.Println("CreateDefaultProject", projectPayload)
-	if err := ps.projectService.DetermineStrategy(projectPayload.UserUuid.String(), "customer"); err != nil {
+func (s Server) CreateDefaultProject(projectPayload ProjectRPCPayload, resp *ProjectRPCPayload) error {
+	if err := s.projectUsecase.DetermineStrategy(projectPayload.UserUuid.String(), "customer"); err != nil {
 		return err
 	}
-	if err := ps.projectService.CreateDefaultProject(projectPayload.UserUuid); err != nil {
+	if err := s.projectUsecase.CreateDefaultProject(projectPayload.UserUuid); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ps *ProjectServer) GetProject(projectToken string, resp *ProjectRPCPayload) error {
-	project, err := ps.projectService.GetProjectByToken(projectToken)
+func (s Server) GetProject(projectToken string, resp *ProjectRPCPayload) error {
+	project, err := s.projectUsecase.GetProjectByToken(projectToken)
 	if err != nil {
 		return err
 	}
@@ -41,8 +39,8 @@ func (ps *ProjectServer) GetProject(projectToken string, resp *ProjectRPCPayload
 	return nil
 }
 
-func (ps *ProjectServer) GetProjectList(userUuid uuid.UUID, resp *[]ProjectRPCPayload) error {
-	projectList, err := ps.projectService.GetProjectListByUserUuid(userUuid, uuid.Nil)
+func (s Server) GetProjectList(userUuid uuid.UUID, resp *[]ProjectRPCPayload) error {
+	projectList, err := s.projectUsecase.GetProjectListByUserUuid(userUuid, uuid.Nil)
 	if err != nil {
 		return err
 	}

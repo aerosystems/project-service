@@ -1,7 +1,6 @@
-package handlers
+package rest
 
 import (
-	"github.com/aerosystems/project-service/internal/services"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -22,7 +21,7 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectId} [delete]
 func (h *BaseHandler) ProjectDelete(c echo.Context) error {
-	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
+	accessTokenClaims, _ := c.Get("accessTokenClaims").(*usecases.AccessTokenClaims)
 	projectId, err := strconv.Atoi(c.Param("projectId"))
 	if err != nil {
 		return h.ErrorResponse(c, http.StatusBadRequest, "request path param should be integer", err)

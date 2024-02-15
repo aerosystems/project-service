@@ -13,12 +13,3 @@ type Project struct {
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 }
-
-type ProjectRepository interface {
-	GetById(Id int) (*Project, error)
-	GetByToken(token string) (*Project, error)
-	GetByUserUuid(userUuid uuid.UUID) ([]Project, error)
-	Create(project *Project) error
-	Update(project *Project) error
-	Delete(project *Project) error
-}

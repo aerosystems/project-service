@@ -2,31 +2,33 @@ package RPCServer
 
 import (
 	"fmt"
-	"github.com/aerosystems/project-service/internal/services"
 	"github.com/sirupsen/logrus"
 	"net"
 	"net/rpc"
 )
 
-type ProjectServer struct {
-	rpcPort        int
+const rpcPort = 5001
+
+type Server struct {
 	log            *logrus.Logger
-	projectService services.ProjectService
+	projectUsecase ProjectUsecase
 }
 
-func NewProjectServer(
-	rpcPort int,
+func NewServer(
 	log *logrus.Logger,
-	projectService services.ProjectService,
-) *ProjectServer {
-	return &ProjectServer{
-		rpcPort:        rpcPort,
+	projectUsecase ProjectUsecase,
+) *Server {
+	return &Server{
 		log:            log,
-		projectService: projectService,
+		projectUsecase: projectUsecase,
 	}
 }
 
-func (ps *ProjectServer) Listen(rpcPort int) error {
+func (s Server) Run() error {
+	if err := rpc.Register(s); err != nil {
+		return err
+	}
+	s.log.Infof("starting project-service RPC server on port %d\n", rpcPort)
 	listen, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", rpcPort))
 	if err != nil {
 		return err

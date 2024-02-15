@@ -1,7 +1,6 @@
-package handlers
+package rest
 
 import (
-	"github.com/aerosystems/project-service/internal/services"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -21,7 +20,7 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects [get]
 func (h *BaseHandler) GetProjectList(c echo.Context) (err error) {
-	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
+	accessTokenClaims, _ := c.Get("accessTokenClaims").(*usecases.AccessTokenClaims)
 	uuidStr := c.QueryParam("userUuid")
 	if len(uuidStr) == 0 {
 		uuidStr = accessTokenClaims.UserUuid
@@ -60,7 +59,7 @@ func (h *BaseHandler) GetProjectList(c echo.Context) (err error) {
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectId} [get]
 func (h *BaseHandler) GetProject(c echo.Context) error {
-	accessTokenClaims, _ := c.Get("accessTokenClaims").(*services.AccessTokenClaims)
+	accessTokenClaims, _ := c.Get("accessTokenClaims").(*usecases.AccessTokenClaims)
 	projectId, err := strconv.Atoi(c.Param("projectId"))
 	if err != nil {
 		return h.ErrorResponse(c, http.StatusBadRequest, "request path param should be integer", err)

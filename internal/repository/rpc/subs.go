@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-type SubscriptionService interface {
-	GetSubscription(userUuid uuid.UUID) (models.KindSubscription, int, error)
-}
-
 type SubscriptionRPC struct {
 	rpcClient *RPCClient.ReconnectRPCClient
 }

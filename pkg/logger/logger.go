@@ -4,27 +4,27 @@ import (
 	"fmt"
 	"github.com/mattn/go-colorable"
 	"github.com/sirupsen/logrus"
+	"os"
 	"time"
 )
 
-type logger struct{ *logrus.Logger }
+type Logger struct{ *logrus.Logger }
 
-func (l *logger) Say(msg string) {
+func (l *Logger) Say(msg string) {
 	l.Info(msg)
 }
-func (l *logger) Sayf(fmt string, args ...interface{}) {
+func (l *Logger) Sayf(fmt string, args ...interface{}) {
 	l.Infof(fmt, args)
 }
-func (l *logger) SayWithField(msg string, k string, v interface{}) {
+func (l *Logger) SayWithField(msg string, k string, v interface{}) {
 	l.WithField(k, v).Info(msg)
 }
-func (l *logger) SayWithFields(msg string, fields map[string]interface{}) {
+func (l *Logger) SayWithFields(msg string, fields map[string]interface{}) {
 	l.WithFields(fields).Info(msg)
 }
 
-var l *logger
-
-func NewLogger(filename string) *logger {
+func NewLogger() *Logger {
+	filename := os.Getenv("HOSTNAME")
 	logLevel := logrus.InfoLevel
 	log := logrus.New()
 	log.SetLevel(logLevel)
@@ -53,14 +53,5 @@ func NewLogger(filename string) *logger {
 
 	log.AddHook(rotateFileHook)
 
-	// setting the global logger instance as singleton pattern
-	l := &logger{log}
-	_ = l
-
-	return &logger{log}
-}
-
-// GetLogger returns the logger instance by singleton pattern
-func GetLogger() *logger {
-	return l
+	return &Logger{log}
 }

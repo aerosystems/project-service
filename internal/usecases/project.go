@@ -1,45 +1,31 @@
-package services
+package usecases
 
 import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
-	RPCServices "github.com/aerosystems/project-service/internal/rpc_services"
+	RPCServices "github.com/aerosystems/project-service/internal/repository/rpc"
 	"github.com/google/uuid"
 	"math/rand"
 	"strconv"
 	"time"
 )
 
-type ProjectService interface {
-	DetermineStrategy(userUuidStr string, role string) error
-	GetProjectById(projectId int) (*models.Project, error)
-	GetProjectByToken(token string) (*models.Project, error)
-	GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error)
-	CreateProject(userUuid uuid.UUID, name string) error
-	CreateDefaultProject(userUuid uuid.UUID) error
-	UpdateProject(project *models.Project) error
-	DeleteProjectById(projectId int) error
-	IsProjectExistByToken(projectToken string) bool
-	SetStrategy(strategy Strategy)
-	isProjectNameExist(name string, projectList []models.Project) bool
-}
-
-type ProjectServiceImpl struct {
-	projectRepo models.ProjectRepository
+type ProjectUsecase struct {
+	projectRepo ProjectRepository
 	subsRPC     *RPCServices.SubscriptionRPC
 	strategy    Strategy
 }
 
-func NewProjectServiceImpl(projectRepo models.ProjectRepository, subsRPC *RPCServices.SubscriptionRPC) *ProjectServiceImpl {
-	return &ProjectServiceImpl{
+func NewProjectUsecase(projectRepo ProjectRepository, subsRPC *RPCServices.SubscriptionRPC) *ProjectUsecase {
+	return &ProjectUsecase{
 		projectRepo: projectRepo,
 		subsRPC:     subsRPC,
 	}
 }
 
-func (ps *ProjectServiceImpl) DetermineStrategy(userUuidStr string, role string) error {
+func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) error {
 	userUuid, err := uuid.Parse(userUuidStr)
 	if err != nil {
 		return err
@@ -70,7 +56,7 @@ func (ps *ProjectServiceImpl) DetermineStrategy(userUuidStr string, role string)
 	return nil
 }
 
-func (ps *ProjectServiceImpl) GetProjectById(projectId int) (*models.Project, error) {
+func (ps *ProjectUsecase) GetProjectById(projectId int) (*models.Project, error) {
 	project, err := ps.projectRepo.GetById(projectId)
 	if err != nil {
 		return nil, err
@@ -81,7 +67,7 @@ func (ps *ProjectServiceImpl) GetProjectById(projectId int) (*models.Project, er
 	return project, nil
 }
 
-func (ps *ProjectServiceImpl) GetProjectByToken(token string) (*models.Project, error) {
+func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, error) {
 	project, err := ps.projectRepo.GetByToken(token)
 	if err != nil {
 		return nil, err
@@ -92,7 +78,7 @@ func (ps *ProjectServiceImpl) GetProjectByToken(token string) (*models.Project, 
 	return project, nil
 }
 
-func (ps *ProjectServiceImpl) GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error) {
+func (ps *ProjectUsecase) GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error) {
 	if filterUserUuid != uuid.Nil {
 		if !ps.strategy.IsAccessibleByUserUuid(filterUserUuid) {
 			return []models.Project{}, nil
@@ -103,14 +89,14 @@ func (ps *ProjectServiceImpl) GetProjectListByUserUuid(userUuid, filterUserUuid 
 	return projectList, nil
 }
 
-func (ps *ProjectServiceImpl) CreateDefaultProject(userUuid uuid.UUID) error {
+func (ps *ProjectUsecase) CreateDefaultProject(userUuid uuid.UUID) error {
 	if err := ps.CreateProject(userUuid, "default"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ps *ProjectServiceImpl) CreateProject(userUuid uuid.UUID, name string) error {
+func (ps *ProjectUsecase) CreateProject(userUuid uuid.UUID, name string) error {
 	projectList, err := ps.projectRepo.GetByUserUuid(userUuid)
 	if err != nil {
 		return err
@@ -131,7 +117,7 @@ func (ps *ProjectServiceImpl) CreateProject(userUuid uuid.UUID, name string) err
 	return nil
 }
 
-func (ps *ProjectServiceImpl) UpdateProject(project *models.Project) error {
+func (ps *ProjectUsecase) UpdateProject(project *models.Project) error {
 	if !ps.strategy.IsAccessibleByUserUuid(project.UserUuid) {
 		return errors.New("user is not allowed to update the project")
 	}
@@ -141,7 +127,7 @@ func (ps *ProjectServiceImpl) UpdateProject(project *models.Project) error {
 	return nil
 }
 
-func (ps *ProjectServiceImpl) DeleteProjectById(projectId int) error {
+func (ps *ProjectUsecase) DeleteProjectById(projectId int) error {
 	project, err := ps.projectRepo.GetById(projectId)
 	if err != nil {
 		return err
@@ -155,7 +141,7 @@ func (ps *ProjectServiceImpl) DeleteProjectById(projectId int) error {
 	return nil
 }
 
-func (ps *ProjectServiceImpl) IsProjectExistByToken(projectToken string) bool {
+func (ps *ProjectUsecase) IsProjectExistByToken(projectToken string) bool {
 	project, err := ps.projectRepo.GetByToken(projectToken)
 	if err != nil {
 		return false
@@ -166,11 +152,11 @@ func (ps *ProjectServiceImpl) IsProjectExistByToken(projectToken string) bool {
 	return true
 }
 
-func (ps *ProjectServiceImpl) SetStrategy(strategy Strategy) {
+func (ps *ProjectUsecase) SetStrategy(strategy Strategy) {
 	ps.strategy = strategy
 }
 
-func (ps *ProjectServiceImpl) isProjectNameExist(name string, projectList []models.Project) bool {
+func (ps *ProjectUsecase) isProjectNameExist(name string, projectList []models.Project) bool {
 	for _, project := range projectList {
 		if project.Name == name {
 			return true

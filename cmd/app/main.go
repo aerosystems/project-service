@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/aerosystems/project-service/internal/handlers"
 	"github.com/aerosystems/project-service/internal/middleware"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository"
 	RPCServer "github.com/aerosystems/project-service/internal/rpc_server"
 	RPCServices "github.com/aerosystems/project-service/internal/rpc_services"
-	"github.com/aerosystems/project-service/internal/services"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"github.com/aerosystems/project-service/pkg/logger"
 	RPCClient "github.com/aerosystems/project-service/pkg/rpc_client"
@@ -58,12 +56,12 @@ func main() {
 	subsRPCClient := RPCClient.NewClient("tcp", "subs-service:5001")
 	subsRPC := RPCServices.NewSubsRPC(subsRPCClient)
 
-	projectService := services.NewProjectServiceImpl(projectRepo, subsRPC)
+	projectService := usecases.NewProjectServiceImpl(projectRepo, subsRPC)
 
-	baseHandler := handlers.NewBaseHandler(os.Getenv("APP_ENV"), log.Logger, projectService)
+	baseHandler := rest.NewBaseHandler(os.Getenv("APP_ENV"), log.Logger, projectService)
 	projectServer := RPCServer.NewProjectServer(rpcPort, log.Logger, projectService)
 
-	accessTokenService := services.NewAccessTokenServiceImpl(os.Getenv("ACCESS_SECRET"))
+	accessTokenService := usecases.NewAccessTokenServiceImpl(os.Getenv("ACCESS_SECRET"))
 
 	oauthMiddleware := middleware.NewOAuthMiddlewareImpl(accessTokenService)
 	basicAuthMiddleware := middleware.NewBasicAuthMiddlewareImpl(os.Getenv("BASIC_AUTH_DOCS_USERNAME"), os.Getenv("BASIC_AUTH_DOCS_PASSWORD"))
