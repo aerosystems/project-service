@@ -3,7 +3,6 @@ module github.com/aerosystems/project-service
 go 1.19
 
 require (
-	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/labstack/echo-jwt/v4 v4.2.0

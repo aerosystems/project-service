@@ -3,10 +3,11 @@ package usecases
 import (
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/google/uuid"
+	"time"
 )
 
 type SubsRepository interface {
-	GetSubscription(userUuid uuid.UUID) (models.KindSubscription, int, error)
+	GetSubscription(userUuid uuid.UUID) (models.KindSubscription, time.Time, error)
 }
 
 type ProjectRepository interface {

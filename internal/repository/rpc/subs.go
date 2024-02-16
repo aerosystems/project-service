@@ -1,4 +1,4 @@
-package RPCServices
+package rpcRepo
 
 import (
 	"github.com/aerosystems/project-service/internal/models"
@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-type SubscriptionRPC struct {
+type SubsRepo struct {
 	rpcClient *RPCClient.ReconnectRPCClient
 }
 
-func NewSubsRPC(rpcClient *RPCClient.ReconnectRPCClient) *SubscriptionRPC {
-	return &SubscriptionRPC{
+func NewSubsRepo(rpcClient *RPCClient.ReconnectRPCClient) *SubsRepo {
+	return &SubsRepo{
 		rpcClient: rpcClient,
 	}
 }
@@ -23,9 +23,9 @@ type SubsRPCPayload struct {
 	AccessTime time.Time
 }
 
-func (sr *SubscriptionRPC) GetSubscription(userUuid uuid.UUID) (models.KindSubscription, time.Time, error) {
+func (sr *SubsRepo) GetSubscription(userUuid uuid.UUID) (models.KindSubscription, time.Time, error) {
 	var resSub SubsRPCPayload
-	err := sr.rpcClient.Call("SubsServer.GetSubscription", userUuid, &resSub)
+	err := sr.rpcClient.Call("Server.GetSubscription", userUuid, &resSub)
 	if err != nil {
 		return "", time.Time{}, err
 	}

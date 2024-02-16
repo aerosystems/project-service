@@ -1,25 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"github.com/aerosystems/project-service/internal/middleware"
-	"github.com/aerosystems/project-service/internal/models"
-	"github.com/aerosystems/project-service/internal/repository"
-	RPCServer "github.com/aerosystems/project-service/internal/rpc_server"
-	RPCServices "github.com/aerosystems/project-service/internal/rpc_services"
-	"github.com/aerosystems/project-service/pkg/gorm_postgres"
-	"github.com/aerosystems/project-service/pkg/logger"
-	RPCClient "github.com/aerosystems/project-service/pkg/rpc_client"
-	"github.com/aerosystems/project-service/pkg/validators"
-	"github.com/go-playground/validator/v10"
-	"github.com/sirupsen/logrus"
-	"net/rpc"
-	"os"
-)
-
-const (
-	rpcPort = 5001
-	webPort = 80
+	"context"
+	"golang.org/x/sync/errgroup"
 )
 
 // @title Project Service
@@ -46,52 +29,26 @@ const (
 // @schemes https
 // @BasePath /
 func main() {
-	log := logger.NewLogger(os.Getenv("HOSTNAME"))
+	app := InitApp()
 
-	clientGORM := GormPostgres.NewClient(logrus.NewEntry(log.Logger))
-	_ = clientGORM.AutoMigrate(&models.Project{})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	projectRepo := repository.NewProjectRepo(clientGORM)
+	group, ctx := errgroup.WithContext(ctx)
 
-	subsRPCClient := RPCClient.NewClient("tcp", "subs-service:5001")
-	subsRPC := RPCServices.NewSubsRPC(subsRPCClient)
+	group.Go(func() error {
+		return app.httpServer.Run()
+	})
 
-	projectService := usecases.NewProjectServiceImpl(projectRepo, subsRPC)
+	group.Go(func() error {
+		return app.rpcServer.Run()
+	})
 
-	baseHandler := rest.NewBaseHandler(os.Getenv("APP_ENV"), log.Logger, projectService)
-	projectServer := RPCServer.NewProjectServer(rpcPort, log.Logger, projectService)
+	group.Go(func() error {
+		return app.handleSignals(ctx, cancel)
+	})
 
-	accessTokenService := usecases.NewAccessTokenServiceImpl(os.Getenv("ACCESS_SECRET"))
-
-	oauthMiddleware := middleware.NewOAuthMiddlewareImpl(accessTokenService)
-	basicAuthMiddleware := middleware.NewBasicAuthMiddlewareImpl(os.Getenv("BASIC_AUTH_DOCS_USERNAME"), os.Getenv("BASIC_AUTH_DOCS_PASSWORD"))
-
-	app := NewConfig(baseHandler, oauthMiddleware, basicAuthMiddleware)
-	e := app.NewRouter()
-	middleware.AddLog(e, log.Logger)
-
-	validator := validator.New()
-	e.Validator = &validators.CustomValidator{Validator: validator}
-
-	errChan := make(chan error)
-
-	go func() {
-		log.Infof("starting project-service RPC server on port %d\n", rpcPort)
-		errChan <- rpc.Register(projectServer)
-		errChan <- projectServer.Listen(rpcPort)
-	}()
-
-	go func() {
-		log.Infof("starting HTTP server project-service on port %d\n", webPort)
-		errChan <- e.Start(fmt.Sprintf(":%d", webPort))
-	}()
-
-	for {
-		select {
-		case err := <-errChan:
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+	if err := group.Wait(); err != nil {
+		app.log.Errorf("error occurred: %v", err)
 	}
 }

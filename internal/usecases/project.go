@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
-	RPCServices "github.com/aerosystems/project-service/internal/repository/rpc"
 	"github.com/google/uuid"
 	"math/rand"
 	"strconv"
@@ -14,18 +13,18 @@ import (
 
 type ProjectUsecase struct {
 	projectRepo ProjectRepository
-	subsRPC     *RPCServices.SubscriptionRPC
+	subsRepo    SubsRepository
 	strategy    Strategy
 }
 
-func NewProjectUsecase(projectRepo ProjectRepository, subsRPC *RPCServices.SubscriptionRPC) *ProjectUsecase {
+func NewProjectUsecase(projectRepo ProjectRepository, subsRPC SubsRepository) *ProjectUsecase {
 	return &ProjectUsecase{
 		projectRepo: projectRepo,
-		subsRPC:     subsRPC,
+		subsRepo:    subsRPC,
 	}
 }
 
-func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) error {
+func (ps ProjectUsecase) DetermineStrategy(userUuidStr string, role string) error {
 	userUuid, err := uuid.Parse(userUuidStr)
 	if err != nil {
 		return err
@@ -34,7 +33,7 @@ func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) err
 		ps.SetStrategy(&StaffStrategy{userUuid})
 		return nil
 	}
-	kind, accessTime, err := ps.subsRPC.GetSubscription(userUuid)
+	kind, accessTime, err := ps.subsRepo.GetSubscription(userUuid)
 	if err != nil {
 		return err
 	}
@@ -56,7 +55,7 @@ func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) err
 	return nil
 }
 
-func (ps *ProjectUsecase) GetProjectById(projectId int) (*models.Project, error) {
+func (ps ProjectUsecase) GetProjectById(projectId int) (*models.Project, error) {
 	project, err := ps.projectRepo.GetById(projectId)
 	if err != nil {
 		return nil, err
@@ -67,7 +66,7 @@ func (ps *ProjectUsecase) GetProjectById(projectId int) (*models.Project, error)
 	return project, nil
 }
 
-func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, error) {
+func (ps ProjectUsecase) GetProjectByToken(token string) (*models.Project, error) {
 	project, err := ps.projectRepo.GetByToken(token)
 	if err != nil {
 		return nil, err
@@ -78,7 +77,7 @@ func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, erro
 	return project, nil
 }
 
-func (ps *ProjectUsecase) GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error) {
+func (ps ProjectUsecase) GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error) {
 	if filterUserUuid != uuid.Nil {
 		if !ps.strategy.IsAccessibleByUserUuid(filterUserUuid) {
 			return []models.Project{}, nil
@@ -89,14 +88,14 @@ func (ps *ProjectUsecase) GetProjectListByUserUuid(userUuid, filterUserUuid uuid
 	return projectList, nil
 }
 
-func (ps *ProjectUsecase) CreateDefaultProject(userUuid uuid.UUID) error {
+func (ps ProjectUsecase) CreateDefaultProject(userUuid uuid.UUID) error {
 	if err := ps.CreateProject(userUuid, "default"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ps *ProjectUsecase) CreateProject(userUuid uuid.UUID, name string) error {
+func (ps ProjectUsecase) CreateProject(userUuid uuid.UUID, name string) error {
 	projectList, err := ps.projectRepo.GetByUserUuid(userUuid)
 	if err != nil {
 		return err
@@ -117,7 +116,7 @@ func (ps *ProjectUsecase) CreateProject(userUuid uuid.UUID, name string) error {
 	return nil
 }
 
-func (ps *ProjectUsecase) UpdateProject(project *models.Project) error {
+func (ps ProjectUsecase) UpdateProject(project *models.Project) error {
 	if !ps.strategy.IsAccessibleByUserUuid(project.UserUuid) {
 		return errors.New("user is not allowed to update the project")
 	}
@@ -127,7 +126,7 @@ func (ps *ProjectUsecase) UpdateProject(project *models.Project) error {
 	return nil
 }
 
-func (ps *ProjectUsecase) DeleteProjectById(projectId int) error {
+func (ps ProjectUsecase) DeleteProjectById(projectId int) error {
 	project, err := ps.projectRepo.GetById(projectId)
 	if err != nil {
 		return err
@@ -141,7 +140,7 @@ func (ps *ProjectUsecase) DeleteProjectById(projectId int) error {
 	return nil
 }
 
-func (ps *ProjectUsecase) IsProjectExistByToken(projectToken string) bool {
+func (ps ProjectUsecase) IsProjectExistByToken(projectToken string) bool {
 	project, err := ps.projectRepo.GetByToken(projectToken)
 	if err != nil {
 		return false
@@ -152,11 +151,11 @@ func (ps *ProjectUsecase) IsProjectExistByToken(projectToken string) bool {
 	return true
 }
 
-func (ps *ProjectUsecase) SetStrategy(strategy Strategy) {
+func (ps ProjectUsecase) SetStrategy(strategy Strategy) {
 	ps.strategy = strategy
 }
 
-func (ps *ProjectUsecase) isProjectNameExist(name string, projectList []models.Project) bool {
+func (ps ProjectUsecase) isProjectNameExist(name string, projectList []models.Project) bool {
 	for _, project := range projectList {
 		if project.Name == name {
 			return true
