@@ -10,7 +10,6 @@ import (
 	"github.com/aerosystems/project-service/internal/infrastructure/rpc"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository/pg"
-	"github.com/aerosystems/project-service/internal/repository/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"github.com/aerosystems/project-service/pkg/logger"
@@ -25,15 +24,15 @@ import (
 func InitApp() *App {
 	panic(wire.Build(
 		wire.Bind(new(rest.ProjectUsecase), new(*usecases.ProjectUsecase)),
-		wire.Bind(new(RPCServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
-		wire.Bind(new(usecases.SubsRepository), new(*rpcRepo.SubsRepo)),
+		wire.Bind(new(RpcServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
+		wire.Bind(new(usecases.SubsRepository), new(*RpcRepo.SubsRepo)),
 		wire.Bind(new(usecases.ProjectRepository), new(*pg.ProjectRepo)),
-		wire.Bind(new(HTTPServer.TokenService), new(*OAuthService.AccessTokenService)),
+		wire.Bind(new(HttpServer.TokenService), new(*OAuthService.AccessTokenService)),
 		ProvideApp,
 		ProvideLogger,
 		ProvideConfig,
-		ProvideHTTPServer,
-		ProvideRPCServer,
+		ProvideHttpServer,
+		ProvideRpcServer,
 		ProvideLogrusLogger,
 		ProvideLogrusEntry,
 		ProvideGormPostgres,
@@ -47,7 +46,7 @@ func InitApp() *App {
 	))
 }
 
-func ProvideApp(log *logrus.Logger, cfg *config.Config, httpServer *HTTPServer.Server, rpcServer *RPCServer.Server) *App {
+func ProvideApp(log *logrus.Logger, cfg *config.Config, httpServer *HttpServer.Server, rpcServer *RpcServer.Server) *App {
 	panic(wire.Build(NewApp))
 }
 
@@ -59,12 +58,12 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHTTPServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler, tokenService HTTPServer.TokenService) *HTTPServer.Server {
-	panic(wire.Build(HTTPServer.NewServer))
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler, tokenService HttpServer.TokenService) *HttpServer.Server {
+	panic(wire.Build(HttpServer.NewServer))
 }
 
-func ProvideRPCServer(log *logrus.Logger, projectUsecase RPCServer.ProjectUsecase) *RPCServer.Server {
-	panic(wire.Build(RPCServer.NewServer))
+func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {
+	panic(wire.Build(RpcServer.NewServer))
 }
 
 func ProvideLogrusEntry(log *logger.Logger) *logrus.Entry {
@@ -99,9 +98,9 @@ func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usec
 	panic(wire.Build(usecases.NewProjectUsecase))
 }
 
-func ProvideSubsRepo(cfg *config.Config) *rpcRepo.SubsRepo {
+func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {
 	rpcClient := RPCClient.NewClient("tcp", cfg.SubsServiceRPCAddress)
-	return rpcRepo.NewSubsRepo(rpcClient)
+	return RpcRepo.NewSubsRepo(rpcClient)
 }
 
 func ProvideProjectRepo(db *gorm.DB) *pg.ProjectRepo {

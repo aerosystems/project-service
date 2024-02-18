@@ -1,4 +1,4 @@
-package rpcRepo
+package RpcRepo
 
 import (
 	"github.com/aerosystems/project-service/internal/models"

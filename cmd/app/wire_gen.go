@@ -39,13 +39,13 @@ func InitApp() *App {
 	projectHandler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenHandler := ProvideTokenHandler(baseHandler, projectUsecase)
 	accessTokenService := ProvideAccessTokenService(config)
-	server := ProvideHTTPServer(logrusLogger, config, projectHandler, tokenHandler, accessTokenService)
-	rpcServerServer := ProvideRPCServer(logrusLogger, projectUsecase)
+	server := ProvideHttpServer(logrusLogger, config, projectHandler, tokenHandler, accessTokenService)
+	rpcServerServer := ProvideRpcServer(logrusLogger, projectUsecase)
 	app := ProvideApp(logrusLogger, config, server, rpcServerServer)
 	return app
 }
 
-func ProvideApp(log *logrus.Logger, cfg *config.Config, httpServer *HTTPServer.Server, rpcServer *RPCServer.Server) *App {
+func ProvideApp(log *logrus.Logger, cfg *config.Config, httpServer *HttpServer.Server, rpcServer *RpcServer.Server) *App {
 	app := NewApp(log, cfg, httpServer, rpcServer)
 	return app
 }
@@ -60,13 +60,13 @@ func ProvideConfig() *config.Config {
 	return configConfig
 }
 
-func ProvideHTTPServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler, tokenService HTTPServer.TokenService) *HTTPServer.Server {
-	server := HTTPServer.NewServer(log, projectHandler, tokenHandler, tokenService)
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler, tokenService HttpServer.TokenService) *HttpServer.Server {
+	server := HttpServer.NewServer(log, projectHandler, tokenHandler, tokenService)
 	return server
 }
 
-func ProvideRPCServer(log *logrus.Logger, projectUsecase RPCServer.ProjectUsecase) *RPCServer.Server {
-	server := RPCServer.NewServer(log, projectUsecase)
+func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {
+	server := RpcServer.NewServer(log, projectUsecase)
 	return server
 }
 
@@ -112,9 +112,9 @@ func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *rest.BaseHandle
 	return rest.NewBaseHandler(log, cfg.Mode)
 }
 
-func ProvideSubsRepo(cfg *config.Config) *rpcRepo.SubsRepo {
+func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {
 	rpcClient := RPCClient.NewClient("tcp", cfg.SubsServiceRPCAddress)
-	return rpcRepo.NewSubsRepo(rpcClient)
+	return RpcRepo.NewSubsRepo(rpcClient)
 }
 
 func ProvideAccessTokenService(cfg *config.Config) *OAuthService.AccessTokenService {

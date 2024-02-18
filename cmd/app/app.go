@@ -10,15 +10,15 @@ import (
 type App struct {
 	log        *logrus.Logger
 	cfg        *config.Config
-	httpServer *HTTPServer.Server
-	rpcServer  *RPCServer.Server
+	httpServer *HttpServer.Server
+	rpcServer  *RpcServer.Server
 }
 
 func NewApp(
 	log *logrus.Logger,
 	cfg *config.Config,
-	httpServer *HTTPServer.Server,
-	rpcServer *RPCServer.Server,
+	httpServer *HttpServer.Server,
+	rpcServer *RpcServer.Server,
 ) *App {
 	return &App{
 		log:        log,
