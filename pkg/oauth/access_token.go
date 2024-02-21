@@ -30,6 +30,9 @@ func (r AccessTokenService) DecodeAccessToken(tokenString string) (*AccessTokenC
 	token, err := jwt.ParseWithClaims(tokenString, &AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(r.accessSecret), nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	if claims, ok := token.Claims.(*AccessTokenClaims); ok && token.Valid {
 		return claims, nil
 	} else {
