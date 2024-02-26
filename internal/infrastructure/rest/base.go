@@ -49,7 +49,7 @@ type ErrorResponse struct {
 }
 
 // SuccessResponse takes a response status code and arbitrary data and writes a json response to the client
-func (h *BaseHandler) SuccessResponse(c echo.Context, statusCode int, message string, data any) error {
+func (h BaseHandler) SuccessResponse(c echo.Context, statusCode int, message string, data any) error {
 	payload := Response{
 		Message: message,
 		Data:    data,
@@ -58,7 +58,7 @@ func (h *BaseHandler) SuccessResponse(c echo.Context, statusCode int, message st
 }
 
 // ErrorResponse takes a response status code and arbitrary data and writes a json response to the client. It depends on the mode whether the error is included in the response.
-func (h *BaseHandler) ErrorResponse(c echo.Context, statusCode int, message string, err error) error {
+func (h BaseHandler) ErrorResponse(c echo.Context, statusCode int, message string, err error) error {
 	payload := Response{Message: message}
 	if strings.ToLower(h.mode) == "dev" {
 		payload.Data = err.Error()
