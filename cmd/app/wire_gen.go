@@ -113,7 +113,7 @@ func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *rest.BaseHandle
 }
 
 func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {
-	rpcClient := RPCClient.NewClient("tcp", cfg.SubsServiceRPCAddress)
+	rpcClient := RpcClient.NewClient("tcp", cfg.SubsServiceRPCAddress)
 	return RpcRepo.NewSubsRepo(rpcClient)
 }
 

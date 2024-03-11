@@ -1,4 +1,4 @@
-package RPCClient
+package RpcClient
 
 import (
 	"errors"
@@ -6,22 +6,22 @@ import (
 	"sync"
 )
 
-type ReconnectRPCClient struct {
+type ReconnectRpcClient struct {
 	mutex   sync.Mutex
 	rpc     *rpc.Client
 	network string
 	address string
 }
 
-func NewClient(protocol, address string) *ReconnectRPCClient {
-	return &ReconnectRPCClient{
+func NewClient(protocol, address string) *ReconnectRpcClient {
+	return &ReconnectRpcClient{
 		network: protocol,
 		address: address,
 	}
 }
 
 // Close closes the underlying socket file descriptor.
-func (rpcClient *ReconnectRPCClient) Close() error {
+func (rpcClient *ReconnectRpcClient) Close() error {
 	rpcClient.mutex.Lock()
 	defer rpcClient.mutex.Unlock()
 	// If rpc client has not connected yet there is nothing to close.
@@ -36,7 +36,7 @@ func (rpcClient *ReconnectRPCClient) Close() error {
 }
 
 // Call makes RPC call to the remote endpoint using the default codec, namely encoding/gob.
-func (rpcClient *ReconnectRPCClient) Call(serviceMethod string, args interface{}, reply interface{}) (err error) {
+func (rpcClient *ReconnectRpcClient) Call(serviceMethod string, args interface{}, reply interface{}) (err error) {
 	rpcClient.mutex.Lock()
 	defer rpcClient.mutex.Unlock()
 	dialCall := func() error {

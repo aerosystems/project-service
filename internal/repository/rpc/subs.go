@@ -8,10 +8,10 @@ import (
 )
 
 type SubsRepo struct {
-	rpcClient *RPCClient.ReconnectRPCClient
+	rpcClient *RpcClient.ReconnectRpcClient
 }
 
-func NewSubsRepo(rpcClient *RPCClient.ReconnectRPCClient) *SubsRepo {
+func NewSubsRepo(rpcClient *RpcClient.ReconnectRpcClient) *SubsRepo {
 	return &SubsRepo{
 		rpcClient: rpcClient,
 	}
