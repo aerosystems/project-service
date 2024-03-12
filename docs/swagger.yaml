@@ -1,43 +1,5 @@
 basePath: /
 definitions:
-  handlers.CreateProjectRequest:
-    properties:
-      name:
-        example: bla-bla-bla.com
-        maxLength: 128
-        minLength: 3
-        type: string
-      userUuid:
-        example: "66"
-        type: string
-    required:
-    - name
-    - userUuid
-    type: object
-  handlers.ErrorResponse:
-    properties:
-      code:
-        type: integer
-      error: {}
-      message:
-        type: string
-    type: object
-  handlers.Response:
-    properties:
-      data: {}
-      message:
-        type: string
-    type: object
-  handlers.UpdateProjectRequest:
-    properties:
-      name:
-        example: bla-bla-bla.com
-        maxLength: 128
-        minLength: 3
-        type: string
-    required:
-    - name
-    type: object
   models.Project:
     properties:
       id:
@@ -53,7 +15,45 @@ definitions:
         example: "666"
         type: string
     type: object
-host: gw.verifire.com/project
+  rest.CreateProjectRequest:
+    properties:
+      name:
+        example: bla-bla-bla.com
+        maxLength: 128
+        minLength: 3
+        type: string
+      userUuid:
+        example: "66"
+        type: string
+    required:
+    - name
+    - userUuid
+    type: object
+  rest.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      error: {}
+      message:
+        type: string
+    type: object
+  rest.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  rest.UpdateProjectRequest:
+    properties:
+      name:
+        example: bla-bla-bla.com
+        maxLength: 128
+        minLength: 3
+        type: string
+    required:
+    - name
+    type: object
+host: gw.verifire.dev/project
 info:
   contact:
     name: Artem Kostenko
@@ -82,7 +82,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/handlers.Response'
+            - $ref: '#/definitions/rest.Response'
             - properties:
                 data:
                   items:
@@ -92,15 +92,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
       security:
       - BearerAuth: []
       summary: get all projects. Result depends on user role
@@ -115,7 +115,7 @@ paths:
         name: comment
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreateProjectRequest'
+          $ref: '#/definitions/rest.CreateProjectRequest'
       produces:
       - application/json
       responses:
@@ -123,7 +123,7 @@ paths:
           description: Created
           schema:
             allOf:
-            - $ref: '#/definitions/handlers.Response'
+            - $ref: '#/definitions/rest.Response'
             - properties:
                 data:
                   $ref: '#/definitions/models.Project'
@@ -131,23 +131,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
       security:
       - BearerAuth: []
       summary: create project
@@ -169,27 +169,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Response'
+            $ref: '#/definitions/rest.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
       security:
       - BearerAuth: []
       summary: delete project by ProjectId
@@ -211,7 +211,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/handlers.Response'
+            - $ref: '#/definitions/rest.Response'
             - properties:
                 data:
                   $ref: '#/definitions/models.Project'
@@ -219,27 +219,27 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
       security:
       - BearerAuth: []
       summary: get project by ProjectId
@@ -259,7 +259,7 @@ paths:
         name: comment
         required: true
         schema:
-          $ref: '#/definitions/handlers.UpdateProjectRequest'
+          $ref: '#/definitions/rest.UpdateProjectRequest'
       produces:
       - application/json
       responses:
@@ -267,7 +267,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/handlers.Response'
+            - $ref: '#/definitions/rest.Response'
             - properties:
                 data:
                   $ref: '#/definitions/models.Project'
@@ -275,31 +275,31 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
       security:
       - BearerAuth: []
       summary: update project by ProjectId
@@ -315,11 +315,11 @@ paths:
         "204":
           description: No Content
           schema:
-            $ref: '#/definitions/handlers.Response'
+            $ref: '#/definitions/rest.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/rest.ErrorResponse'
       security:
       - X-Api-Key: []
       summary: validate token
