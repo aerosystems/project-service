@@ -13,7 +13,7 @@ func (s *Server) setupRoutes() {
 	s.echo.GET("/v1/projects/:projectId", s.projectHandler.GetProject, s.AuthTokenMiddleware(models.CustomerRole, models.StaffRole))
 
 	// Private routes OAuth 2.0: check roles [staff]. Auth implemented on API Gateway
-	s.echo.POST("/v1/projects", s.projectHandler.ProjectCreate, s.AuthTokenMiddleware(models.StaffRole))
-	s.echo.PATCH("/v1/projects/:projectId", s.projectHandler.ProjectUpdate, s.AuthTokenMiddleware(models.StaffRole))
+	s.echo.POST("/v1/projects", s.projectHandler.ProjectCreate, s.AuthTokenMiddleware(models.CustomerRole, models.StaffRole))
+	s.echo.PATCH("/v1/projects/:projectId", s.projectHandler.UpdateProject, s.AuthTokenMiddleware(models.StaffRole))
 	s.echo.DELETE("/v1/projects/:projectId", s.projectHandler.ProjectDelete, s.AuthTokenMiddleware(models.StaffRole))
 }

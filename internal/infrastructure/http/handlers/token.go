@@ -1,4 +1,4 @@
-package rest
+package handlers
 
 import (
 	"github.com/labstack/echo/v4"
@@ -7,13 +7,13 @@ import (
 
 type TokenHandler struct {
 	*BaseHandler
-	projectUsecase ProjectUsecase
+	tokenUsecase TokenUsecase
 }
 
-func NewTokenHandler(baseHandler *BaseHandler, projectUsecase ProjectUsecase) *TokenHandler {
+func NewTokenHandler(baseHandler *BaseHandler, tokenUsecase TokenUsecase) *TokenHandler {
 	return &TokenHandler{
-		BaseHandler:    baseHandler,
-		projectUsecase: projectUsecase,
+		BaseHandler:  baseHandler,
+		tokenUsecase: tokenUsecase,
 	}
 }
 
@@ -28,7 +28,7 @@ func NewTokenHandler(baseHandler *BaseHandler, projectUsecase ProjectUsecase) *T
 // @Router /v1/token/validate [get]
 func (th TokenHandler) ValidateToken(c echo.Context) error {
 	token := c.Request().Header.Get("X-Api-Key")
-	if th.projectUsecase.IsProjectExistByToken(token) {
+	if !th.tokenUsecase.IsProjectExistByToken(token) {
 		return th.ErrorResponse(c, http.StatusUnauthorized, "could not get Project by Token", nil)
 	}
 	return c.JSON(http.StatusNoContent, nil)

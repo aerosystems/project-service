@@ -5,8 +5,8 @@ package main
 
 import (
 	"github.com/aerosystems/project-service/internal/config"
-	"github.com/aerosystems/project-service/internal/http"
-	"github.com/aerosystems/project-service/internal/infrastructure/rest"
+	"github.com/aerosystems/project-service/internal/infrastructure/http"
+	"github.com/aerosystems/project-service/internal/infrastructure/http/handlers"
 	"github.com/aerosystems/project-service/internal/infrastructure/rpc"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository/pg"
@@ -23,7 +23,8 @@ import (
 //go:generate wire
 func InitApp() *App {
 	panic(wire.Build(
-		wire.Bind(new(rest.ProjectUsecase), new(*usecases.ProjectUsecase)),
+		wire.Bind(new(handlers.ProjectUsecase), new(*usecases.ProjectUsecase)),
+		wire.Bind(new(handlers.TokenUsecase), new(*usecases.TokenUsecase)),
 		wire.Bind(new(RpcServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(usecases.SubsRepository), new(*RpcRepo.SubsRepo)),
 		wire.Bind(new(usecases.ProjectRepository), new(*pg.ProjectRepo)),
@@ -39,6 +40,7 @@ func InitApp() *App {
 		ProvideProjectHandler,
 		ProvideTokenHandler,
 		ProvideProjectUsecase,
+		ProvideTokenUsecase,
 		ProvideSubsRepo,
 		ProvideProjectRepo,
 	))
@@ -56,7 +58,7 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler) *HttpServer.Server {
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
 	return HttpServer.NewServer(log, cfg.AccessSecret, projectHandler, tokenHandler)
 }
 
@@ -80,20 +82,24 @@ func ProvideGormPostgres(e *logrus.Entry, cfg *config.Config) *gorm.DB {
 	return db
 }
 
-func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *rest.BaseHandler {
-	return rest.NewBaseHandler(log, cfg.Mode)
+func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *handlers.BaseHandler {
+	return handlers.NewBaseHandler(log, cfg.Mode)
 }
 
-func ProvideProjectHandler(baseHandler *rest.BaseHandler, projectUsecase rest.ProjectUsecase) *rest.ProjectHandler {
-	panic(wire.Build(rest.NewProjectHandler))
+func ProvideProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *handlers.ProjectHandler {
+	panic(wire.Build(handlers.NewProjectHandler))
 }
 
-func ProvideTokenHandler(baseHandler *rest.BaseHandler, projectUsecase rest.ProjectUsecase) *rest.TokenHandler {
-	panic(wire.Build(rest.NewTokenHandler))
+func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handlers.TokenUsecase) *handlers.TokenHandler {
+	panic(wire.Build(handlers.NewTokenHandler))
 }
 
 func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository) *usecases.ProjectUsecase {
 	panic(wire.Build(usecases.NewProjectUsecase))
+}
+
+func ProvideTokenUsecase(projectRepo usecases.ProjectRepository) *usecases.TokenUsecase {
+	panic(wire.Build(usecases.NewTokenUsecase))
 }
 
 func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {

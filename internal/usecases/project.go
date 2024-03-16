@@ -33,15 +33,10 @@ func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) err
 		ps.SetStrategy(&StaffStrategy{userUuid})
 		return nil
 	}
-	kind, accessTime, err := ps.subsRepo.GetSubscription(userUuid)
+	kind, _, err := ps.subsRepo.GetSubscription(userUuid)
 	if err != nil {
 		return err
 	}
-	// TODO: is it necessary?
-	_ = accessTime
-	//if accessTime.Before(time.Now()) {
-	//	return errors.New("subscription is expired")
-	//}
 	switch kind {
 	case models.TrialSubscription:
 		fallthrough
@@ -71,9 +66,10 @@ func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, erro
 	if err != nil {
 		return nil, err
 	}
-	if !ps.strategy.IsAccessibleByUserUuid(project.UserUuid) {
-		return nil, errors.New("user is not allowed to access the project")
-	}
+	// TODO: if it statement is needed, we should determine strategy before
+	//if !ps.strategy.IsAccessibleByUserUuid(project.UserUuid) {
+	//	return nil, errors.New("user is not allowed to access the project")
+	//}
 	return project, nil
 }
 

@@ -35,11 +35,17 @@ func (s Server) GetProject(projectToken string, resp *ProjectRPCPayload) error {
 	if err != nil {
 		return err
 	}
-	resp = NewProjectRPCPayload(project.Id, project.UserUuid, project.Name, project.Token)
+	resp.Id = project.Id
+	resp.UserUuid = project.UserUuid
+	resp.Name = project.Name
+	resp.Token = project.Token
 	return nil
 }
 
 func (s Server) GetProjectList(userUuid uuid.UUID, resp *[]ProjectRPCPayload) error {
+	if err := s.projectUsecase.DetermineStrategy(userUuid.String(), "customer"); err != nil {
+		return err
+	}
 	projectList, err := s.projectUsecase.GetProjectListByUserUuid(userUuid, uuid.Nil)
 	if err != nil {
 		return err

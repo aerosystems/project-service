@@ -1,4 +1,4 @@
-package rest
+package handlers
 
 import (
 	"github.com/aerosystems/project-service/internal/models"
@@ -18,6 +18,15 @@ func NewProjectHandler(baseHandler *BaseHandler, projectUsecase ProjectUsecase) 
 		BaseHandler:    baseHandler,
 		projectUsecase: projectUsecase,
 	}
+}
+
+type CreateProjectRequest struct {
+	UserUuid string `json:"userUuid" validate:"required,number" example:"66"`
+	Name     string `json:"name" validate:"required,min=3,max=128" example:"bla-bla-bla.com"`
+}
+
+type UpdateProjectRequest struct {
+	Name string `json:"name" validate:"required,min=3,max=128" example:"bla-bla-bla.com"`
 }
 
 // ProjectCreate godoc
@@ -123,7 +132,7 @@ func (ph ProjectHandler) GetProject(c echo.Context) error {
 	return ph.SuccessResponse(c, http.StatusOK, "project successfully found", project)
 }
 
-// ProjectUpdate godoc
+// UpdateProject godoc
 // @Summary update project by ProjectId
 // @Tags projects
 // @Accept  json
@@ -140,7 +149,7 @@ func (ph ProjectHandler) GetProject(c echo.Context) error {
 // @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectId} [patch]
-func (ph ProjectHandler) ProjectUpdate(c echo.Context) error {
+func (ph ProjectHandler) UpdateProject(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	projectId, err := strconv.Atoi(c.Param("projectId"))
 	if err != nil {

@@ -1,4 +1,4 @@
-package rest
+package handlers
 
 import (
 	"github.com/aerosystems/project-service/internal/models"
@@ -12,5 +12,8 @@ type ProjectUsecase interface {
 	CreateProject(userUuid uuid.UUID, name string) error
 	UpdateProject(project *models.Project) error
 	DeleteProjectById(projectId int) error
+}
+
+type TokenUsecase interface {
 	IsProjectExistByToken(token string) bool
 }
