@@ -17,7 +17,6 @@ import (
 	"github.com/aerosystems/project-service/internal/usecases"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"github.com/aerosystems/project-service/pkg/logger"
-	"github.com/aerosystems/project-service/pkg/oauth"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -38,8 +37,7 @@ func InitApp() *App {
 	projectUsecase := ProvideProjectUsecase(projectRepo, subsRepo)
 	projectHandler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenHandler := ProvideTokenHandler(baseHandler, projectUsecase)
-	accessTokenService := ProvideAccessTokenService(config)
-	server := ProvideHttpServer(logrusLogger, config, projectHandler, tokenHandler, accessTokenService)
+	server := ProvideHttpServer(logrusLogger, config, projectHandler, tokenHandler)
 	rpcServerServer := ProvideRpcServer(logrusLogger, projectUsecase)
 	app := ProvideApp(logrusLogger, config, server, rpcServerServer)
 	return app
@@ -58,11 +56,6 @@ func ProvideLogger() *logger.Logger {
 func ProvideConfig() *config.Config {
 	configConfig := config.NewConfig()
 	return configConfig
-}
-
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler, tokenService HttpServer.TokenService) *HttpServer.Server {
-	server := HttpServer.NewServer(log, projectHandler, tokenHandler, tokenService)
-	return server
 }
 
 func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {
@@ -92,6 +85,10 @@ func ProvideProjectRepo(db *gorm.DB) *pg.ProjectRepo {
 
 // wire.go:
 
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler) *HttpServer.Server {
+	return HttpServer.NewServer(log, cfg.AccessSecret, projectHandler, tokenHandler)
+}
+
 func ProvideLogrusEntry(log *logger.Logger) *logrus.Entry {
 	return logrus.NewEntry(log.Logger)
 }
@@ -115,8 +112,4 @@ func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *rest.BaseHandle
 func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {
 	rpcClient := RpcClient.NewClient("tcp", cfg.SubsServiceRPCAddress)
 	return RpcRepo.NewSubsRepo(rpcClient)
-}
-
-func ProvideAccessTokenService(cfg *config.Config) *OAuthService.AccessTokenService {
-	return OAuthService.NewAccessTokenService(cfg.AccessSecret)
 }

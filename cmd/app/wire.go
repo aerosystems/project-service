@@ -10,10 +10,10 @@ import (
 	"github.com/aerosystems/project-service/internal/infrastructure/rpc"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/repository/pg"
+	"github.com/aerosystems/project-service/internal/repository/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
 	"github.com/aerosystems/project-service/pkg/gorm_postgres"
 	"github.com/aerosystems/project-service/pkg/logger"
-	"github.com/aerosystems/project-service/pkg/oauth"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/google/wire"
 	"github.com/sirupsen/logrus"
@@ -27,7 +27,6 @@ func InitApp() *App {
 		wire.Bind(new(RpcServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(usecases.SubsRepository), new(*RpcRepo.SubsRepo)),
 		wire.Bind(new(usecases.ProjectRepository), new(*pg.ProjectRepo)),
-		wire.Bind(new(HttpServer.TokenService), new(*OAuthService.AccessTokenService)),
 		ProvideApp,
 		ProvideLogger,
 		ProvideConfig,
@@ -42,7 +41,6 @@ func InitApp() *App {
 		ProvideProjectUsecase,
 		ProvideSubsRepo,
 		ProvideProjectRepo,
-		ProvideAccessTokenService,
 	))
 }
 
@@ -58,8 +56,8 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler, tokenService HttpServer.TokenService) *HttpServer.Server {
-	panic(wire.Build(HttpServer.NewServer))
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *rest.ProjectHandler, tokenHandler *rest.TokenHandler) *HttpServer.Server {
+	return HttpServer.NewServer(log, cfg.AccessSecret, projectHandler, tokenHandler)
 }
 
 func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {
@@ -105,8 +103,4 @@ func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {
 
 func ProvideProjectRepo(db *gorm.DB) *pg.ProjectRepo {
 	panic(wire.Build(pg.NewProjectRepo))
-}
-
-func ProvideAccessTokenService(cfg *config.Config) *OAuthService.AccessTokenService {
-	return OAuthService.NewAccessTokenService(cfg.AccessSecret)
 }
