@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/aerosystems/project-service/internal/models"
+	"github.com/google/uuid"
 	"google.golang.org/api/iterator"
 )
 
@@ -55,10 +56,10 @@ func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
 	return &project, nil
 }
 
-func (r *ProjectRepo) GetByUserUuid(userUuid string) ([]models.Project, error) {
+func (r *ProjectRepo) GetByUserUuid(userUuid uuid.UUID) ([]models.Project, error) {
 	var projects []models.Project
 
-	iter := r.client.Collection("projects").Where("UserUuid", "==", userUuid).Documents(r.ctx)
+	iter := r.client.Collection("projects").Where("UserUuid", "==", userUuid.String()).Documents(r.ctx)
 	defer iter.Stop()
 
 	for {
