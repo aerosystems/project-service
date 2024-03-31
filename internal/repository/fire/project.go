@@ -11,19 +11,17 @@ import (
 
 type ProjectRepo struct {
 	client *firestore.Client
-	ctx    context.Context
 }
 
-func NewProjectRepo(client *firestore.Client, ctx context.Context) *ProjectRepo {
+func NewProjectRepo(client *firestore.Client) *ProjectRepo {
 	return &ProjectRepo{
 		client: client,
-		ctx:    ctx,
 	}
 }
 
-func (r *ProjectRepo) GetById(Id int) (*models.Project, error) {
-	docRef := r.client.Collection("projects").Doc(string(Id))
-	doc, err := docRef.Get(r.ctx)
+func (r *ProjectRepo) GetById(ctx context.Context, id int) (*models.Project, error) {
+	docRef := r.client.Collection("projects").Doc(string(id))
+	doc, err := docRef.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -36,8 +34,8 @@ func (r *ProjectRepo) GetById(Id int) (*models.Project, error) {
 	return &project, nil
 }
 
-func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
-	iter := r.client.Collection("projects").Where("Token", "==", Token).Limit(1).Documents(r.ctx)
+func (r *ProjectRepo) GetByToken(ctx context.Context, token string) (*models.Project, error) {
+	iter := r.client.Collection("projects").Where("token", "==", token).Limit(1).Documents(ctx)
 	defer iter.Stop()
 
 	doc, err := iter.Next()
@@ -56,10 +54,10 @@ func (r *ProjectRepo) GetByToken(Token string) (*models.Project, error) {
 	return &project, nil
 }
 
-func (r *ProjectRepo) GetByUserUuid(userUuid uuid.UUID) ([]models.Project, error) {
+func (r *ProjectRepo) GetByUserUuid(ctx context.Context, userUuid uuid.UUID) ([]models.Project, error) {
 	var projects []models.Project
 
-	iter := r.client.Collection("projects").Where("UserUuid", "==", userUuid.String()).Documents(r.ctx)
+	iter := r.client.Collection("projects").Where("UserUuid", "==", userUuid.String()).Documents(ctx)
 	defer iter.Stop()
 
 	for {
@@ -82,17 +80,17 @@ func (r *ProjectRepo) GetByUserUuid(userUuid uuid.UUID) ([]models.Project, error
 	return projects, nil
 }
 
-func (r *ProjectRepo) Create(project *models.Project) error {
-	_, _, err := r.client.Collection("projects").Add(r.ctx, project)
+func (r *ProjectRepo) Create(ctx context.Context, project *models.Project) error {
+	_, _, err := r.client.Collection("projects").Add(ctx, project)
 	return err
 }
 
-func (r *ProjectRepo) Update(project *models.Project) error {
-	_, err := r.client.Collection("projects").Doc(string(project.Id)).Set(r.ctx, project)
+func (r *ProjectRepo) Update(ctx context.Context, project *models.Project) error {
+	_, err := r.client.Collection("projects").Doc(string(project.Id)).Set(ctx, project)
 	return err
 }
 
-func (r *ProjectRepo) Delete(project *models.Project) error {
-	_, err := r.client.Collection("projects").Doc(string(project.Id)).Delete(r.ctx)
+func (r *ProjectRepo) Delete(ctx context.Context, project *models.Project) error {
+	_, err := r.client.Collection("projects").Doc(string(project.Id)).Delete(ctx)
 	return err
 }
