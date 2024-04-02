@@ -11,6 +11,7 @@ type Config struct {
 	PostgresDSN           string `mapstructure:"POSTGRES_DSN" required:"true"`
 	SubsServiceRPCAddress string `mapstructure:"SUBS_SERVICE_RPC_ADDR" required:"true"`
 	AccessSecret          string `mapstructure:"ACCESS_SECRET" required:"true"`
+	GcpProjectId          string `mapstructure:"GCP_PROJECT_ID"  required:"true"`
 }
 
 func NewConfig() *Config {

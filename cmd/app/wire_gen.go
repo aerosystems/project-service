@@ -7,11 +7,14 @@
 package main
 
 import (
+	"cloud.google.com/go/firestore"
+	"context"
 	"github.com/aerosystems/project-service/internal/config"
 	"github.com/aerosystems/project-service/internal/infrastructure/http"
 	"github.com/aerosystems/project-service/internal/infrastructure/http/handlers"
 	"github.com/aerosystems/project-service/internal/infrastructure/rpc"
 	"github.com/aerosystems/project-service/internal/models"
+	"github.com/aerosystems/project-service/internal/repository/fire"
 	"github.com/aerosystems/project-service/internal/repository/pg"
 	"github.com/aerosystems/project-service/internal/repository/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
@@ -89,6 +92,11 @@ func ProvideProjectRepo(db *gorm.DB) *pg.ProjectRepo {
 	return projectRepo
 }
 
+func ProvideFireProjectRepo(client *firestore.Client) *fire.ProjectRepo {
+	projectRepo := fire.NewProjectRepo(client)
+	return projectRepo
+}
+
 // wire.go:
 
 func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
@@ -118,4 +126,13 @@ func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *handlers.BaseHa
 func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {
 	rpcClient := RpcClient.NewClient("tcp", cfg.SubsServiceRPCAddress)
 	return RpcRepo.NewSubsRepo(rpcClient)
+}
+
+func ProvideFirestoreClient(cfg *config.Config) *firestore.Client {
+	ctx := context.Background()
+	client, err := firestore.NewClient(ctx, cfg.GcpProjectId)
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
