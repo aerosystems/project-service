@@ -62,7 +62,7 @@ func (s *Server) AuthTokenMiddleware(roles ...models.KindRole) echo.MiddlewareFu
 			if !isAccess(roles, accessTokenClaims.UserRole) {
 				return echo.NewHTTPError(http.StatusForbidden, "access denied")
 			}
-			echo.Context(c).Set("accessTokenClaims", accessTokenClaims)
+			echo.Context(c).Set("accessTokenClaims", *accessTokenClaims)
 			return next(c)
 		}
 	}
