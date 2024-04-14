@@ -1,5 +1,9 @@
 package usecases
 
+import (
+	"context"
+)
+
 type TokenUsecase struct {
 	projectRepo ProjectRepository
 }
@@ -11,7 +15,8 @@ func NewTokenUsecase(projectRepo ProjectRepository) *TokenUsecase {
 }
 
 func (tu TokenUsecase) IsProjectExistByToken(projectToken string) bool {
-	project, err := tu.projectRepo.GetByToken(projectToken)
+	ctx := context.Background()
+	project, err := tu.projectRepo.GetByToken(ctx, projectToken)
 	if err != nil {
 		return false
 	}

@@ -19,7 +19,7 @@ func NewSubsRepo(rpcClient *RpcClient.ReconnectRpcClient) *SubsRepo {
 
 type SubsRPCPayload struct {
 	UserUuid   uuid.UUID
-	Kind       models.KindSubscription
+	Kind       string
 	AccessTime time.Time
 }
 
@@ -27,7 +27,7 @@ func (sr *SubsRepo) GetSubscription(userUuid uuid.UUID) (models.KindSubscription
 	var resSub SubsRPCPayload
 	err := sr.rpcClient.Call("Server.GetSubscription", userUuid, &resSub)
 	if err != nil {
-		return "", time.Time{}, err
+		return models.KindSubscription{}, time.Time{}, err
 	}
-	return resSub.Kind, resSub.AccessTime, nil
+	return models.NewKindSubscription(resSub.Kind), resSub.AccessTime, nil
 }

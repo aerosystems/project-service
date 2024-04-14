@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -51,7 +52,8 @@ func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) err
 }
 
 func (ps *ProjectUsecase) GetProjectById(projectId int) (*models.Project, error) {
-	project, err := ps.projectRepo.GetById(projectId)
+	ctx := context.Background()
+	project, err := ps.projectRepo.GetById(ctx, projectId)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +64,8 @@ func (ps *ProjectUsecase) GetProjectById(projectId int) (*models.Project, error)
 }
 
 func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, error) {
-	project, err := ps.projectRepo.GetByToken(token)
+	ctx := context.Background()
+	project, err := ps.projectRepo.GetByToken(ctx, token)
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +81,11 @@ func (ps *ProjectUsecase) GetProjectListByUserUuid(userUuid, filterUserUuid uuid
 		if !ps.strategy.IsAccessibleByUserUuid(filterUserUuid) {
 			return []models.Project{}, nil
 		}
-		projectList, err = ps.projectRepo.GetByUserUuid(filterUserUuid)
+		ctx := context.Background()
+		projectList, err = ps.projectRepo.GetByUserUuid(ctx, filterUserUuid)
 	}
-	projectList, err = ps.projectRepo.GetByUserUuid(userUuid)
+	ctx := context.Background()
+	projectList, err = ps.projectRepo.GetByUserUuid(ctx, userUuid)
 	return projectList, nil
 }
 
@@ -92,7 +97,8 @@ func (ps *ProjectUsecase) CreateDefaultProject(userUuid uuid.UUID) error {
 }
 
 func (ps *ProjectUsecase) CreateProject(userUuid uuid.UUID, name string) error {
-	projectList, err := ps.projectRepo.GetByUserUuid(userUuid)
+	ctx := context.Background()
+	projectList, err := ps.projectRepo.GetByUserUuid(ctx, userUuid)
 	if err != nil {
 		return err
 	}
@@ -106,7 +112,8 @@ func (ps *ProjectUsecase) CreateProject(userUuid uuid.UUID, name string) error {
 		return errors.New("out of projects limit")
 	}
 	newProject := NewProject(userUuid, name)
-	if err := ps.projectRepo.Create(newProject); err != nil {
+	ctx = context.Background()
+	if err := ps.projectRepo.Create(ctx, newProject); err != nil {
 		return err
 	}
 	return nil
@@ -116,28 +123,32 @@ func (ps *ProjectUsecase) UpdateProject(project *models.Project) error {
 	if !ps.strategy.IsAccessibleByUserUuid(project.UserUuid) {
 		return errors.New("user is not allowed to update the project")
 	}
-	if err := ps.projectRepo.Update(project); err != nil {
+	ctx := context.Background()
+	if err := ps.projectRepo.Update(ctx, project); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (ps *ProjectUsecase) DeleteProjectById(projectId int) error {
-	project, err := ps.projectRepo.GetById(projectId)
+	ctx := context.Background()
+	project, err := ps.projectRepo.GetById(ctx, projectId)
 	if err != nil {
 		return err
 	}
 	if !ps.strategy.IsAccessibleByUserUuid(project.UserUuid) {
 		return errors.New("user is not allowed to delete the project")
 	}
-	if err := ps.projectRepo.Delete(project); err != nil {
+	ctx = context.Background()
+	if err := ps.projectRepo.Delete(ctx, project); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (ps *ProjectUsecase) IsProjectExistByToken(projectToken string) bool {
-	project, err := ps.projectRepo.GetByToken(projectToken)
+	ctx := context.Background()
+	project, err := ps.projectRepo.GetByToken(ctx, projectToken)
 	if err != nil {
 		return false
 	}
