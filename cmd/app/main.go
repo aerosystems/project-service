@@ -6,7 +6,7 @@ import (
 )
 
 // @title Project Service
-// @version 1.0.6
+// @version 2.0.0
 // @description A part of microservice infrastructure, who responsible for managing user Projects
 
 // @contact.name Artem Kostenko

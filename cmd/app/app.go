@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/aerosystems/project-service/internal/config"
-	"github.com/aerosystems/project-service/internal/infrastructure/http"
-	"github.com/aerosystems/project-service/internal/infrastructure/rpc"
+	"github.com/aerosystems/project-service/internal/presenters/http"
+	"github.com/aerosystems/project-service/internal/presenters/rpc"
 	"github.com/sirupsen/logrus"
 )
 

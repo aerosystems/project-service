@@ -2,7 +2,7 @@ package HttpServer
 
 import (
 	"fmt"
-	"github.com/aerosystems/project-service/internal/infrastructure/http/handlers"
+	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )

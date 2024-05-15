@@ -64,7 +64,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: Project Service
-  version: 1.0.6
+  version: 2.0.0
 paths:
   /v1/projects:
     get:
