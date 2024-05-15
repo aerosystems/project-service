@@ -1,19 +1,15 @@
 package HttpServer
 
 import (
-	"errors"
-	"github.com/aerosystems/project-service/internal/models"
-	"github.com/golang-jwt/jwt"
-	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	"strings"
 )
 
 func (s *Server) setupMiddleware() {
 	s.addLog(s.log)
+	s.addCORS()
 }
 
 func (s *Server) addLog(log *logrus.Logger) {
@@ -39,75 +35,4 @@ func (s *Server) addCORS() {
 		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions},
 	}
 	s.echo.Use(middleware.CORSWithConfig(DefaultCORSConfig))
-}
-
-func (s *Server) AuthTokenMiddleware(roles ...models.KindRole) echo.MiddlewareFunc {
-	AuthorizationConfig := echojwt.Config{
-		SigningKey:     []byte(s.accessSecret),
-		ParseTokenFunc: s.parseToken,
-		ErrorHandler: func(c echo.Context, err error) error {
-			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
-		},
-	}
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			token, err := getTokenFromHeader(c)
-			if err != nil {
-				return AuthorizationConfig.ErrorHandler(c, err)
-			}
-			accessTokenClaims, err := s.DecodeAccessToken(token)
-			if err != nil {
-				return AuthorizationConfig.ErrorHandler(c, err)
-			}
-			if !isAccess(roles, accessTokenClaims.UserRole) {
-				return echo.NewHTTPError(http.StatusForbidden, "access denied")
-			}
-			echo.Context(c).Set("accessTokenClaims", *accessTokenClaims)
-			return next(c)
-		}
-	}
-}
-
-func (s *Server) parseToken(c echo.Context, auth string) (interface{}, error) {
-	_ = c
-	accessTokenClaims, err := s.DecodeAccessToken(auth)
-	if err != nil {
-		return nil, err
-	}
-	return accessTokenClaims, nil
-}
-
-func (s *Server) DecodeAccessToken(tokenString string) (*models.AccessTokenClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &models.AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(s.accessSecret), nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if claims, ok := token.Claims.(*models.AccessTokenClaims); ok && token.Valid {
-		return claims, nil
-	} else {
-		return nil, err
-	}
-}
-
-func isAccess(roles []models.KindRole, role string) bool {
-	for _, r := range roles {
-		if r.String() == role {
-			return true
-		}
-	}
-	return false
-}
-
-func getTokenFromHeader(c echo.Context) (string, error) {
-	authHeader := c.Request().Header.Get("Authorization")
-	if len(authHeader) == 0 {
-		return "", errors.New("missing Authorization header")
-	}
-	tokenParts := strings.Split(authHeader, " ")
-	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		return "", errors.New("invalid token format")
-	}
-	return tokenParts[1], nil
 }
