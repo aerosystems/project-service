@@ -6,21 +6,20 @@ package main
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"firebase.google.com/go/auth"
 	"github.com/aerosystems/project-service/internal/config"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
-	"github.com/aerosystems/project-service/internal/infrastructure/repository/pg"
-	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/presenters/http"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
+	"github.com/aerosystems/project-service/internal/presenters/http/middleware"
 	"github.com/aerosystems/project-service/internal/presenters/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
-	"github.com/aerosystems/project-service/pkg/gorm_postgres"
+	"github.com/aerosystems/project-service/pkg/firebase"
 	"github.com/aerosystems/project-service/pkg/logger"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/google/wire"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 //go:generate wire
@@ -30,15 +29,13 @@ func InitApp() *App {
 		wire.Bind(new(handlers.TokenUsecase), new(*usecases.TokenUsecase)),
 		wire.Bind(new(RpcServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(usecases.SubsRepository), new(*RpcRepo.SubsRepo)),
-		wire.Bind(new(usecases.ProjectRepository), new(*pg.ProjectRepo)),
+		wire.Bind(new(usecases.ProjectRepository), new(*fire.ProjectRepo)),
 		ProvideApp,
 		ProvideLogger,
 		ProvideConfig,
 		ProvideHttpServer,
 		ProvideRpcServer,
 		ProvideLogrusLogger,
-		ProvideLogrusEntry,
-		ProvideGormPostgres,
 		ProvideBaseHandler,
 		ProvideProjectHandler,
 		ProvideTokenHandler,
@@ -46,6 +43,9 @@ func InitApp() *App {
 		ProvideTokenUsecase,
 		ProvideSubsRepo,
 		ProvideProjectRepo,
+		ProvideFirestoreClient,
+		ProvideFirebaseAuthMiddleware,
+		ProvideFirebaseAuthClient,
 	))
 }
 
@@ -61,28 +61,16 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
-	return HttpServer.NewServer(log, cfg.AccessSecret, projectHandler, tokenHandler)
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
+	return HttpServer.NewServer(log, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
 func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {
 	panic(wire.Build(RpcServer.NewServer))
 }
 
-func ProvideLogrusEntry(log *logger.Logger) *logrus.Entry {
-	return logrus.NewEntry(log.Logger)
-}
-
 func ProvideLogrusLogger(log *logger.Logger) *logrus.Logger {
 	return log.Logger
-}
-
-func ProvideGormPostgres(e *logrus.Entry, cfg *config.Config) *gorm.DB {
-	db := GormPostgres.NewClient(e, cfg.PostgresDSN)
-	if err := db.AutoMigrate(&models.Project{}); err != nil { // TODO: Move to migration
-		panic(err)
-	}
-	return db
 }
 
 func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *handlers.BaseHandler {
@@ -110,10 +98,6 @@ func ProvideSubsRepo(cfg *config.Config) *RpcRepo.SubsRepo {
 	return RpcRepo.NewSubsRepo(rpcClient)
 }
 
-func ProvideProjectRepo(db *gorm.DB) *pg.ProjectRepo {
-	panic(wire.Build(pg.NewProjectRepo))
-}
-
 func ProvideFirestoreClient(cfg *config.Config) *firestore.Client {
 	ctx := context.Background()
 	client, err := firestore.NewClient(ctx, cfg.GcpProjectId)
@@ -123,6 +107,18 @@ func ProvideFirestoreClient(cfg *config.Config) *firestore.Client {
 	return client
 }
 
-func ProvideFireProjectRepo(client *firestore.Client) *fire.ProjectRepo {
+func ProvideProjectRepo(client *firestore.Client) *fire.ProjectRepo {
 	panic(wire.Build(fire.NewProjectRepo))
+}
+
+func ProvideFirebaseAuthMiddleware(client *auth.Client) *middleware.FirebaseAuth {
+	return middleware.NewFirebaseAuth(client)
+}
+
+func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
+	app, err := firebaseApp.NewApp(cfg.GcpProjectId, cfg.GoogleApplicationCredentials)
+	if err != nil {
+		panic(err)
+	}
+	return app.Client
 }

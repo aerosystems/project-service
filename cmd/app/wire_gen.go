@@ -9,20 +9,19 @@ package main
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"firebase.google.com/go/auth"
 	"github.com/aerosystems/project-service/internal/config"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
-	"github.com/aerosystems/project-service/internal/infrastructure/repository/pg"
-	"github.com/aerosystems/project-service/internal/models"
 	"github.com/aerosystems/project-service/internal/presenters/http"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
+	"github.com/aerosystems/project-service/internal/presenters/http/middleware"
 	"github.com/aerosystems/project-service/internal/presenters/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
-	"github.com/aerosystems/project-service/pkg/gorm_postgres"
+	"github.com/aerosystems/project-service/pkg/firebase"
 	"github.com/aerosystems/project-service/pkg/logger"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 // Injectors from wire.go:
@@ -32,16 +31,17 @@ func InitApp() *App {
 	logger := ProvideLogger()
 	logrusLogger := ProvideLogrusLogger(logger)
 	config := ProvideConfig()
+	client := ProvideFirebaseAuthClient(config)
+	firebaseAuth := ProvideFirebaseAuthMiddleware(client)
 	baseHandler := ProvideBaseHandler(logrusLogger, config)
-	entry := ProvideLogrusEntry(logger)
-	db := ProvideGormPostgres(entry, config)
-	projectRepo := ProvideProjectRepo(db)
+	firestoreClient := ProvideFirestoreClient(config)
+	projectRepo := ProvideProjectRepo(firestoreClient)
 	subsRepo := ProvideSubsRepo(config)
 	projectUsecase := ProvideProjectUsecase(projectRepo, subsRepo)
 	projectHandler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenUsecase := ProvideTokenUsecase(projectRepo)
 	tokenHandler := ProvideTokenHandler(baseHandler, tokenUsecase)
-	server := ProvideHttpServer(logrusLogger, config, projectHandler, tokenHandler)
+	server := ProvideHttpServer(logrusLogger, config, firebaseAuth, projectHandler, tokenHandler)
 	rpcServerServer := ProvideRpcServer(logrusLogger, projectUsecase)
 	app := ProvideApp(logrusLogger, config, server, rpcServerServer)
 	return app
@@ -87,36 +87,19 @@ func ProvideTokenUsecase(projectRepo usecases.ProjectRepository) *usecases.Token
 	return tokenUsecase
 }
 
-func ProvideProjectRepo(db *gorm.DB) *pg.ProjectRepo {
-	projectRepo := pg.NewProjectRepo(db)
-	return projectRepo
-}
-
-func ProvideFireProjectRepo(client *firestore.Client) *fire.ProjectRepo {
+func ProvideProjectRepo(client *firestore.Client) *fire.ProjectRepo {
 	projectRepo := fire.NewProjectRepo(client)
 	return projectRepo
 }
 
 // wire.go:
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
-	return HttpServer.NewServer(log, cfg.AccessSecret, projectHandler, tokenHandler)
-}
-
-func ProvideLogrusEntry(log *logger.Logger) *logrus.Entry {
-	return logrus.NewEntry(log.Logger)
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
+	return HttpServer.NewServer(log, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
 func ProvideLogrusLogger(log *logger.Logger) *logrus.Logger {
 	return log.Logger
-}
-
-func ProvideGormPostgres(e *logrus.Entry, cfg *config.Config) *gorm.DB {
-	db := GormPostgres.NewClient(e, cfg.PostgresDSN)
-	if err := db.AutoMigrate(&models.Project{}); err != nil {
-		panic(err)
-	}
-	return db
 }
 
 func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *handlers.BaseHandler {
@@ -135,4 +118,16 @@ func ProvideFirestoreClient(cfg *config.Config) *firestore.Client {
 		panic(err)
 	}
 	return client
+}
+
+func ProvideFirebaseAuthMiddleware(client *auth.Client) *middleware.FirebaseAuth {
+	return middleware.NewFirebaseAuth(client)
+}
+
+func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
+	app, err := firebaseApp.NewApp(cfg.GcpProjectId, cfg.GoogleApplicationCredentials)
+	if err != nil {
+		panic(err)
+	}
+	return app.Client
 }
