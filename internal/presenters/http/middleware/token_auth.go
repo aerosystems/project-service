@@ -26,7 +26,7 @@ type AccessTokenClaims struct {
 	jwt.StandardClaims
 }
 
-func (ta TokenBasedAuth) AuthTokenMiddleware(roles ...models.KindRole) echo.MiddlewareFunc {
+func (ta TokenBasedAuth) AuthTokenMiddleware(roles ...models.Role) echo.MiddlewareFunc {
 	AuthorizationConfig := echojwt.Config{
 		SigningKey:     []byte(ta.accessSecret),
 		ParseTokenFunc: ta.parseToken,

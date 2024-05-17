@@ -29,7 +29,7 @@ func GetUserFromContext(ctx context.Context) (User, error) {
 	return user, nil
 }
 
-func isAccess(roles []models.KindRole, role string) bool {
+func isAccess(roles []models.Role, role string) bool {
 	for _, r := range roles {
 		if r.String() == role {
 			return true

@@ -19,7 +19,7 @@ func NewFirebaseAuth(client *auth.Client) *FirebaseAuth {
 	}
 }
 
-func (fa FirebaseAuth) RoleBased(roles ...models.KindRole) echo.MiddlewareFunc {
+func (fa FirebaseAuth) RoleBased(roles ...models.Role) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()

@@ -1,12 +1,26 @@
 package models
 
-type KindRole string
+type Role struct {
+	slug string
+}
 
-const (
-	CustomerRole KindRole = "customer"
-	StaffRole    KindRole = "staff"
+var (
+	UnknownRole  = Role{"unknown"}
+	CustomerRole = Role{"customer"}
+	StaffRole    = Role{"staff"}
 )
 
-func (k KindRole) String() string {
-	return string(k)
+func (k Role) String() string {
+	return k.slug
+}
+
+func RoleFromString(kind string) Role {
+	switch kind {
+	case CustomerRole.String():
+		return CustomerRole
+	case StaffRole.String():
+		return StaffRole
+	default:
+		return UnknownRole
+	}
 }
