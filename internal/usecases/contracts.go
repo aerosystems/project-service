@@ -8,7 +8,7 @@ import (
 )
 
 type SubsRepository interface {
-	GetSubscription(userUuid uuid.UUID) (models.KindSubscription, time.Time, error)
+	GetSubscription(userUuid uuid.UUID) (models.SubscriptionType, time.Time, error)
 }
 
 type ProjectRepository interface {

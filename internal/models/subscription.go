@@ -1,21 +1,21 @@
 package models
 
-type KindSubscription struct {
+type SubscriptionType struct {
 	slug string
 }
 
 var (
-	UnknownSubscription  = KindSubscription{"unknown"}
-	TrialSubscription    = KindSubscription{"trial"}
-	StartupSubscription  = KindSubscription{"startup"}
-	BusinessSubscription = KindSubscription{"business"}
+	UnknownSubscription  = SubscriptionType{"unknown"}
+	TrialSubscription    = SubscriptionType{"trial"}
+	StartupSubscription  = SubscriptionType{"startup"}
+	BusinessSubscription = SubscriptionType{"business"}
 )
 
-func (k KindSubscription) String() string {
+func (k SubscriptionType) String() string {
 	return k.slug
 }
 
-func NewKindSubscription(kind string) KindSubscription {
+func NewSubscriptionType(kind string) SubscriptionType {
 	switch kind {
 	case TrialSubscription.String():
 		return TrialSubscription

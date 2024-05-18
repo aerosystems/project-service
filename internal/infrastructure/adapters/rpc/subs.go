@@ -23,11 +23,11 @@ type SubsRPCPayload struct {
 	AccessTime time.Time
 }
 
-func (sr *SubsRepo) GetSubscription(userUuid uuid.UUID) (models.KindSubscription, time.Time, error) {
+func (sr *SubsRepo) GetSubscription(userUuid uuid.UUID) (models.SubscriptionType, time.Time, error) {
 	var resSub SubsRPCPayload
 	err := sr.rpcClient.Call("Server.GetSubscription", userUuid, &resSub)
 	if err != nil {
-		return models.KindSubscription{}, time.Time{}, err
+		return models.SubscriptionType{}, time.Time{}, err
 	}
-	return models.NewKindSubscription(resSub.Kind), resSub.AccessTime, nil
+	return models.NewSubscriptionType(resSub.Kind), resSub.AccessTime, nil
 }
