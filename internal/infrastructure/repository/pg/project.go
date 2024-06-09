@@ -50,7 +50,7 @@ func ModelToProjectPg(project *models.Project) *Project {
 	}
 }
 
-func (r *ProjectRepo) GetById(ctx context.Context, Id int) (*models.Project, error) {
+func (r *ProjectRepo) GetById(_ context.Context, Id int) (*models.Project, error) {
 	var project Project
 	result := r.db.First(&project, Id)
 	if result.Error != nil {
@@ -62,7 +62,7 @@ func (r *ProjectRepo) GetById(ctx context.Context, Id int) (*models.Project, err
 	return project.ToModel(), nil
 }
 
-func (r *ProjectRepo) GetByToken(ctx context.Context, token string) (*models.Project, error) {
+func (r *ProjectRepo) GetByToken(_ context.Context, token string) (*models.Project, error) {
 	var project Project
 	result := r.db.First(&project, "token = ?", token)
 	if result.Error != nil {
@@ -74,7 +74,7 @@ func (r *ProjectRepo) GetByToken(ctx context.Context, token string) (*models.Pro
 	return project.ToModel(), nil
 }
 
-func (r *ProjectRepo) GetByUserUuid(ctx context.Context, userUuid uuid.UUID) ([]models.Project, error) {
+func (r *ProjectRepo) GetByUserUuid(_ context.Context, userUuid uuid.UUID) ([]models.Project, error) {
 	var pgProjects []Project
 	result := r.db.Find(&pgProjects, "user_uuid = ?", userUuid.String())
 	if result.Error != nil {
@@ -87,7 +87,7 @@ func (r *ProjectRepo) GetByUserUuid(ctx context.Context, userUuid uuid.UUID) ([]
 	return projects, nil
 }
 
-func (r *ProjectRepo) Create(ctx context.Context, project *models.Project) error {
+func (r *ProjectRepo) Create(_ context.Context, project *models.Project) error {
 	result := r.db.Create(ModelToProjectPg(project))
 	if result.Error != nil {
 		return result.Error
@@ -95,7 +95,7 @@ func (r *ProjectRepo) Create(ctx context.Context, project *models.Project) error
 	return nil
 }
 
-func (r *ProjectRepo) Update(ctx context.Context, project *models.Project) error {
+func (r *ProjectRepo) Update(_ context.Context, project *models.Project) error {
 	result := r.db.Save(ModelToProjectPg(project))
 	if result.Error != nil {
 		return result.Error
@@ -103,7 +103,7 @@ func (r *ProjectRepo) Update(ctx context.Context, project *models.Project) error
 	return nil
 }
 
-func (r *ProjectRepo) Delete(ctx context.Context, project *models.Project) error {
+func (r *ProjectRepo) Delete(_ context.Context, project *models.Project) error {
 	result := r.db.Delete(ModelToProjectPg(project))
 	if result.Error != nil {
 		return result.Error
