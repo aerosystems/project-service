@@ -25,33 +25,33 @@ func NewProjectRepo(client *firestore.Client) *ProjectRepo {
 }
 
 type Project struct {
-	Id        int       `firestore:"id"`
-	UserUuid  string    `firestore:"user_uuid"`
-	Name      string    `firestore:"name"`
-	Token     string    `firestore:"token"`
-	CreatedAt time.Time `firestore:"created_at"`
-	UpdatedAt time.Time `firestore:"updated_at"`
+	Id           int       `firestore:"id"`
+	CustomerUuid string    `firestore:"customer_uuid"`
+	Name         string    `firestore:"name"`
+	Token        string    `firestore:"token"`
+	CreatedAt    time.Time `firestore:"created_at"`
+	UpdatedAt    time.Time `firestore:"updated_at"`
 }
 
 func (p *Project) ToModel() *models.Project {
 	return &models.Project{
-		Id:        p.Id,
-		UserUuid:  uuid.MustParse(p.UserUuid),
-		Name:      p.Name,
-		Token:     p.Token,
-		CreatedAt: p.CreatedAt,
-		UpdatedAt: p.UpdatedAt,
+		Id:           p.Id,
+		CustomerUuid: uuid.MustParse(p.CustomerUuid),
+		Name:         p.Name,
+		Token:        p.Token,
+		CreatedAt:    p.CreatedAt,
+		UpdatedAt:    p.UpdatedAt,
 	}
 }
 
 func ModelToProject(project *models.Project) *Project {
 	return &Project{
-		Id:        project.Id,
-		UserUuid:  project.UserUuid.String(),
-		Name:      project.Name,
-		Token:     project.Token,
-		CreatedAt: project.CreatedAt,
-		UpdatedAt: project.UpdatedAt,
+		Id:           project.Id,
+		CustomerUuid: project.CustomerUuid.String(),
+		Name:         project.Name,
+		Token:        project.Token,
+		CreatedAt:    project.CreatedAt,
+		UpdatedAt:    project.UpdatedAt,
 	}
 }
 
@@ -110,11 +110,33 @@ func (r *ProjectRepo) GetByToken(ctx context.Context, token string) (*models.Pro
 	return project.ToModel(), nil
 }
 
-func (r *ProjectRepo) GetByUserUuid(ctx context.Context, userUuid uuid.UUID) ([]models.Project, error) {
+func (r *ProjectRepo) GetByCustomerUuidAndName(ctx context.Context, customerUuid uuid.UUID, name string) (*models.Project, error) {
+	c, cancel := context.WithTimeout(ctx, defaultTimeout)
+	defer cancel()
+	iter := r.client.Collection("projects").Where("customer_uuid", "==", customerUuid.String()).Where("name", "==", name).Limit(1).Documents(c)
+	defer iter.Stop()
+
+	doc, err := iter.Next()
+	if err != nil {
+		if errors.Is(err, iterator.Done) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var project Project
+	if err := doc.DataTo(&project); err != nil {
+		return nil, err
+	}
+
+	return project.ToModel(), nil
+}
+
+func (r *ProjectRepo) GetByCustomerUuid(ctx context.Context, customerUuid uuid.UUID) ([]models.Project, error) {
 	c, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 	var fireProjects []Project
-	iter := r.client.Collection("fireProjects").Where("UserUuid", "==", userUuid.String()).Documents(c)
+	iter := r.client.Collection("projects").Where("customer_uuid", "==", customerUuid.String()).Documents(c)
 	defer iter.Stop()
 
 	for {

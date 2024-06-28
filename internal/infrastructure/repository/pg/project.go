@@ -30,19 +30,19 @@ type Project struct {
 
 func (p *Project) ToModel() *models.Project {
 	return &models.Project{
-		Id:        p.Id,
-		UserUuid:  p.UserUuid,
-		Name:      p.Name,
-		Token:     p.Token,
-		CreatedAt: p.CreatedAt,
-		UpdatedAt: p.UpdatedAt,
+		Id:           p.Id,
+		CustomerUuid: p.UserUuid,
+		Name:         p.Name,
+		Token:        p.Token,
+		CreatedAt:    p.CreatedAt,
+		UpdatedAt:    p.UpdatedAt,
 	}
 }
 
 func ModelToProjectPg(project *models.Project) *Project {
 	return &Project{
 		Id:        project.Id,
-		UserUuid:  project.UserUuid,
+		UserUuid:  project.CustomerUuid,
 		Name:      project.Name,
 		Token:     project.Token,
 		CreatedAt: project.CreatedAt,

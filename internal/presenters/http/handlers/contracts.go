@@ -6,10 +6,11 @@ import (
 )
 
 type ProjectUsecase interface {
+	InitProject(userUuidStr string) (*models.Project, error)
 	DetermineStrategy(userUuidStr string, role string) error
 	GetProjectById(projectId int) (*models.Project, error)
-	GetProjectListByUserUuid(userUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error)
-	CreateProject(userUuid uuid.UUID, name string) error
+	GetProjectListByCustomerUuid(customerUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error)
+	CreateProject(customerUuid uuid.UUID, name string) error
 	UpdateProject(project *models.Project) error
 	DeleteProjectById(projectId int) error
 }

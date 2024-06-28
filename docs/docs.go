@@ -42,7 +42,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UserUuid",
+                        "description": "CustomerUuid",
                         "name": "userUuid",
                         "in": "query"
                     }

@@ -15,6 +15,8 @@ import (
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
 	"github.com/aerosystems/project-service/internal/presenters/http"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
+	"github.com/aerosystems/project-service/internal/presenters/http/handlers/project"
+	"github.com/aerosystems/project-service/internal/presenters/http/handlers/token"
 	"github.com/aerosystems/project-service/internal/presenters/http/middleware"
 	"github.com/aerosystems/project-service/internal/presenters/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
@@ -38,10 +40,10 @@ func InitApp() *App {
 	projectRepo := ProvideProjectRepo(firestoreClient)
 	subsRepo := ProvideSubsRepo(config)
 	projectUsecase := ProvideProjectUsecase(projectRepo, subsRepo)
-	projectHandler := ProvideProjectHandler(baseHandler, projectUsecase)
+	handler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenUsecase := ProvideTokenUsecase(projectRepo)
 	tokenHandler := ProvideTokenHandler(baseHandler, tokenUsecase)
-	server := ProvideHttpServer(logrusLogger, config, firebaseAuth, projectHandler, tokenHandler)
+	server := ProvideHttpServer(logrusLogger, config, firebaseAuth, handler, tokenHandler)
 	rpcServerServer := ProvideRpcServer(logrusLogger, projectUsecase)
 	app := ProvideApp(logrusLogger, config, server, rpcServerServer)
 	return app
@@ -67,14 +69,14 @@ func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecas
 	return server
 }
 
-func ProvideProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *handlers.ProjectHandler {
-	projectHandler := handlers.NewProjectHandler(baseHandler, projectUsecase)
-	return projectHandler
+func ProvideProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *project.Handler {
+	handler := project.NewProjectHandler(baseHandler, projectUsecase)
+	return handler
 }
 
-func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handlers.TokenUsecase) *handlers.TokenHandler {
-	tokenHandler := handlers.NewTokenHandler(baseHandler, tokenUsecase)
-	return tokenHandler
+func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handlers.TokenUsecase) *token.Handler {
+	handler := token.NewTokenHandler(baseHandler, tokenUsecase)
+	return handler
 }
 
 func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository) *usecases.ProjectUsecase {
@@ -94,7 +96,7 @@ func ProvideProjectRepo(client *firestore.Client) *fire.ProjectRepo {
 
 // wire.go:
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
 	return HttpServer.NewServer(log, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 

@@ -12,6 +12,8 @@ import (
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
 	"github.com/aerosystems/project-service/internal/presenters/http"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
+	"github.com/aerosystems/project-service/internal/presenters/http/handlers/project"
+	"github.com/aerosystems/project-service/internal/presenters/http/handlers/token"
 	"github.com/aerosystems/project-service/internal/presenters/http/middleware"
 	"github.com/aerosystems/project-service/internal/presenters/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
@@ -61,7 +63,7 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
+func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
 	return HttpServer.NewServer(log, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
@@ -77,12 +79,12 @@ func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *handlers.BaseHa
 	return handlers.NewBaseHandler(log, cfg.Mode)
 }
 
-func ProvideProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *handlers.ProjectHandler {
-	panic(wire.Build(handlers.NewProjectHandler))
+func ProvideProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *project.Handler {
+	panic(wire.Build(project.NewProjectHandler))
 }
 
-func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handlers.TokenUsecase) *handlers.TokenHandler {
-	panic(wire.Build(handlers.NewTokenHandler))
+func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handlers.TokenUsecase) *token.Handler {
+	panic(wire.Build(token.NewTokenHandler))
 }
 
 func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository) *usecases.ProjectUsecase {
