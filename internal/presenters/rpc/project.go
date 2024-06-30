@@ -5,16 +5,16 @@ import (
 )
 
 type ProjectRPCPayload struct {
-	Id       int
+	Uuid     string
 	UserUuid uuid.UUID
 	Name     string
 	Token    string
 }
 
-func NewProjectRPCPayload(id int, UserUuid uuid.UUID, name string, token string) *ProjectRPCPayload {
+func NewProjectRPCPayload(projectUuid string, userUuid uuid.UUID, name string, token string) *ProjectRPCPayload {
 	return &ProjectRPCPayload{
-		Id:       id,
-		UserUuid: UserUuid,
+		Uuid:     projectUuid,
+		UserUuid: userUuid,
 		Name:     name,
 		Token:    token,
 	}
@@ -35,7 +35,6 @@ func (s Server) GetProject(projectToken string, resp *ProjectRPCPayload) error {
 	if err != nil {
 		return err
 	}
-	resp.Id = project.Id
 	resp.UserUuid = project.CustomerUuid
 	resp.Name = project.Name
 	resp.Token = project.Token
@@ -51,7 +50,7 @@ func (s Server) GetProjectList(userUuid uuid.UUID, resp *[]ProjectRPCPayload) er
 		return err
 	}
 	for _, project := range projectList {
-		payload := NewProjectRPCPayload(project.Id, project.CustomerUuid, project.Name, project.Token)
+		payload := NewProjectRPCPayload(project.Uuid.String(), project.CustomerUuid, project.Name, project.Token)
 		*resp = append(*resp, *payload)
 	}
 	return nil

@@ -30,8 +30,8 @@ func NewProjectUsecase(projectRepo ProjectRepository, subsRPC SubsRepository) *P
 	}
 }
 
-func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) error {
-	customerUuid, err := uuid.Parse(userUuidStr)
+func (ps *ProjectUsecase) DetermineStrategy(customerUuidStr string, role string) error {
+	customerUuid, err := uuid.Parse(customerUuidStr)
 	if err != nil {
 		return err
 	}
@@ -56,13 +56,17 @@ func (ps *ProjectUsecase) DetermineStrategy(userUuidStr string, role string) err
 	return nil
 }
 
-func (ps *ProjectUsecase) GetProjectById(projectId int) (*models.Project, error) {
+func (ps *ProjectUsecase) GetProjectByUuid(projectUuidStr string) (*models.Project, error) {
+	projectUuid, err := uuid.Parse(projectUuidStr)
+	if err != nil {
+		return nil, CustomErrors.ErrProjectUuidInvalid
+	}
 	ctx := context.Background()
-	project, err := ps.projectRepo.GetById(ctx, projectId)
+	project, err := ps.projectRepo.GetByUuid(ctx, projectUuid)
 	if err != nil {
 		return nil, err
 	}
-	if !ps.strategy.IsAccessibleByUserUuid(project.CustomerUuid) {
+	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
 		return nil, errors.New("user is not allowed to access the project")
 	}
 	return project, nil
@@ -75,7 +79,7 @@ func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, erro
 		return nil, err
 	}
 	// TODO: if it statement is needed, we should determine strategy before
-	//if !ps.strategy.IsAccessibleByUserUuid(project.CustomerUuid) {
+	//if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
 	//	return nil, errors.New("user is not allowed to access the project")
 	//}
 	return project, nil
@@ -83,7 +87,7 @@ func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, erro
 
 func (ps *ProjectUsecase) GetProjectListByCustomerUuid(customerUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error) {
 	if filterUserUuid != uuid.Nil {
-		if !ps.strategy.IsAccessibleByUserUuid(filterUserUuid) {
+		if !ps.strategy.IsAccessibleByCustomerUuid(filterUserUuid) {
 			return []models.Project{}, nil
 		}
 		ctx := context.Background()
@@ -101,8 +105,8 @@ func (ps *ProjectUsecase) CreateDefaultProject(customerUuid uuid.UUID) error {
 	return nil
 }
 
-func (ps *ProjectUsecase) InitProject(userUuidStr string) (*models.Project, error) {
-	customerUuid, err := uuid.Parse(userUuidStr)
+func (ps *ProjectUsecase) InitProject(customerUuidStr string) (*models.Project, error) {
+	customerUuid, err := uuid.Parse(customerUuidStr)
 	if err != nil {
 		return nil, CustomErrors.ErrProjectUuidInvalid
 	}
@@ -110,7 +114,8 @@ func (ps *ProjectUsecase) InitProject(userUuidStr string) (*models.Project, erro
 	if defaultCustomerProject, err := ps.projectRepo.GetByCustomerUuidAndName(ctx, customerUuid, defaultProjectName); err == nil && defaultCustomerProject != nil {
 		return nil, CustomErrors.ErrProjectAlreadyExists
 	}
-	if err := ps.CreateProject(customerUuid, defaultProjectName); err != nil {
+	newDefaultProject := NewProject(customerUuid, defaultProjectName)
+	if err := ps.projectRepo.Create(ctx, newDefaultProject); err != nil {
 		return nil, err
 	}
 	project, err := ps.projectRepo.GetByCustomerUuidAndName(ctx, customerUuid, defaultProjectName)
@@ -129,7 +134,7 @@ func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) err
 	if ps.isProjectNameExist(name, projectList) {
 		return errors.New("project name already exists")
 	}
-	if !ps.strategy.IsAccessibleByUserUuid(customerUuid) {
+	if !ps.strategy.IsAccessibleByCustomerUuid(customerUuid) {
 		return errors.New("user is not allowed to create a project")
 	}
 	if !ps.strategy.IsAccessibleByCountProjects(len(projectList)) {
@@ -144,7 +149,7 @@ func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) err
 }
 
 func (ps *ProjectUsecase) UpdateProject(project *models.Project) error {
-	if !ps.strategy.IsAccessibleByUserUuid(project.CustomerUuid) {
+	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
 		return errors.New("user is not allowed to update the project")
 	}
 	ctx := context.Background()
@@ -154,13 +159,17 @@ func (ps *ProjectUsecase) UpdateProject(project *models.Project) error {
 	return nil
 }
 
-func (ps *ProjectUsecase) DeleteProjectById(projectId int) error {
+func (ps *ProjectUsecase) DeleteProjectByUuid(projectUuidStr string) error {
+	projectUuid, err := uuid.Parse(projectUuidStr)
+	if err != nil {
+		return CustomErrors.ErrProjectUuidInvalid
+	}
 	ctx := context.Background()
-	project, err := ps.projectRepo.GetById(ctx, projectId)
+	project, err := ps.projectRepo.GetByUuid(ctx, projectUuid)
 	if err != nil {
 		return err
 	}
-	if !ps.strategy.IsAccessibleByUserUuid(project.CustomerUuid) {
+	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
 		return errors.New("user is not allowed to delete the project")
 	}
 	ctx = context.Background()
@@ -197,6 +206,7 @@ func (ps *ProjectUsecase) isProjectNameExist(name string, projectList []models.P
 
 func NewProject(customerUuid uuid.UUID, name string) *models.Project {
 	return &models.Project{
+		Uuid:         uuid.New(),
 		Token:        generateToken(),
 		CustomerUuid: customerUuid,
 		Name:         name,

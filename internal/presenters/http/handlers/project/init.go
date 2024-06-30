@@ -1,6 +1,7 @@
 package project
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -10,6 +11,13 @@ type InitProjectRequest struct {
 }
 
 type InitProjectRequestBody struct {
+	Message struct {
+		Data []byte `json:"data"`
+	} `json:"message"`
+	Subscription string `json:"subscription"`
+}
+
+type CreateProjectEvent struct {
 	CustomerUuid string `json:"customerUuid"`
 }
 
@@ -32,8 +40,11 @@ func (ph Handler) InitProject(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return ph.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
 	}
-
-	project, err := ph.projectUsecase.InitProject(req.CustomerUuid)
+	var event CreateProjectEvent
+	if err := json.Unmarshal(req.Message.Data, &event); err != nil {
+		return ph.ErrorResponse(c, http.StatusUnprocessableEntity, "invalid request body", err)
+	}
+	project, err := ph.projectUsecase.InitProject(event.CustomerUuid)
 	if err != nil {
 		return ph.ErrorResponse(c, http.StatusInternalServerError, "could not init project", err)
 	}

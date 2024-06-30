@@ -25,7 +25,7 @@ func NewProjectRepo(client *firestore.Client) *ProjectRepo {
 }
 
 type Project struct {
-	Id           int       `firestore:"id"`
+	Uuid         string    `firestore:"uuid"`
 	CustomerUuid string    `firestore:"customer_uuid"`
 	Name         string    `firestore:"name"`
 	Token        string    `firestore:"token"`
@@ -35,7 +35,7 @@ type Project struct {
 
 func (p *Project) ToModel() *models.Project {
 	return &models.Project{
-		Id:           p.Id,
+		Uuid:         uuid.MustParse(p.Uuid),
 		CustomerUuid: uuid.MustParse(p.CustomerUuid),
 		Name:         p.Name,
 		Token:        p.Token,
@@ -46,7 +46,7 @@ func (p *Project) ToModel() *models.Project {
 
 func ModelToProject(project *models.Project) *Project {
 	return &Project{
-		Id:           project.Id,
+		Uuid:         project.Uuid.String(),
 		CustomerUuid: project.CustomerUuid.String(),
 		Name:         project.Name,
 		Token:        project.Token,
@@ -71,10 +71,10 @@ func ProjectListToModelList(projects []Project) []models.Project {
 	return projectList
 }
 
-func (r *ProjectRepo) GetById(ctx context.Context, id int) (*models.Project, error) {
+func (r *ProjectRepo) GetByUuid(ctx context.Context, uuid uuid.UUID) (*models.Project, error) {
 	c, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
-	docRef := r.client.Collection("projects").Doc(string(id))
+	docRef := r.client.Collection("projects").Doc(uuid.String())
 	doc, err := docRef.Get(c)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (r *ProjectRepo) Create(ctx context.Context, project *models.Project) error
 	c, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 	fireProject := ModelToProject(project)
-	_, err := r.client.Collection("projects").Doc(string(fireProject.Id)).Create(c, fireProject)
+	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Create(c, fireProject)
 	return err
 }
 
@@ -169,13 +169,13 @@ func (r *ProjectRepo) Update(ctx context.Context, project *models.Project) error
 	c, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
 	fireProject := ModelToProject(project)
-	_, err := r.client.Collection("projects").Doc(string(fireProject.Id)).Set(c, fireProject)
+	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Set(c, fireProject)
 	return err
 }
 
 func (r *ProjectRepo) Delete(ctx context.Context, project *models.Project) error {
 	c, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
-	_, err := r.client.Collection("projects").Doc(string(project.Id)).Delete(c)
+	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Delete(c)
 	return err
 }
