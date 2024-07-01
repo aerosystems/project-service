@@ -1,6 +1,7 @@
 package project
 
 import (
+	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -37,15 +38,13 @@ func (ph Handler) UpdateProject(c echo.Context) error {
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
 		return ph.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
 	}
-	project, err := ph.projectUsecase.GetProjectByUuid(projectUuid)
-	if err != nil && project == nil {
-		return ph.ErrorResponse(c, http.StatusNotFound, "project not found", err)
-	} else {
-		return ph.ErrorResponse(c, http.StatusForbidden, "user does not have access to this project", err)
-	}
-	project.Name = requestPayload.Name
-	if err := ph.projectUsecase.UpdateProject(project); err != nil {
-		return ph.ErrorResponse(c, http.StatusInternalServerError, "could not update project", err)
+	project, err := ph.projectUsecase.UpdateProject(projectUuid, requestPayload.Name)
+	if err != nil {
+		var apiErr CustomErrors.ApiError
+		if errors.As(err, &apiErr) {
+			return ph.ErrorResponse(c, apiErr.HttpCode, apiErr.Message, err)
+		}
+		return ph.ErrorResponse(c, http.StatusInternalServerError, "Unable to update the project.", err)
 	}
 	return ph.SuccessResponse(c, http.StatusOK, "project successfully updated", project)
 }

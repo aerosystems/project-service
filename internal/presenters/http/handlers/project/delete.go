@@ -1,6 +1,8 @@
 package project
 
 import (
+	"errors"
+	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -24,15 +26,14 @@ func (ph Handler) ProjectDelete(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	projectUuid := c.Param("projectUuid")
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return ph.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
-	}
-	if project, err := ph.projectUsecase.GetProjectByUuid(projectUuid); err != nil && project == nil {
-		return ph.ErrorResponse(c, http.StatusNotFound, "project not found", err)
-	} else {
-		return ph.ErrorResponse(c, http.StatusForbidden, "user does not have access to this project", err)
+		return ph.ErrorResponse(c, http.StatusForbidden, "Creating a project is forbidden.", err)
 	}
 	if err := ph.projectUsecase.DeleteProjectByUuid(projectUuid); err != nil {
-		return ph.ErrorResponse(c, http.StatusInternalServerError, "could not delete project", err)
+		var apiErr CustomErrors.ApiError
+		if errors.As(err, &apiErr) {
+			return ph.ErrorResponse(c, apiErr.HttpCode, apiErr.Message, err)
+		}
+		return ph.ErrorResponse(c, http.StatusInternalServerError, "Unable to delete the project.", err)
 	}
-	return ph.SuccessResponse(c, http.StatusOK, "project successfully deleted", nil)
+	return ph.SuccessResponse(c, http.StatusOK, "Project has been successfully deleted.", nil)
 }

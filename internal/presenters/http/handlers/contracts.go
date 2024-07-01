@@ -11,7 +11,7 @@ type ProjectUsecase interface {
 	GetProjectByUuid(projectUuidStr string) (*models.Project, error)
 	GetProjectListByCustomerUuid(customerUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error)
 	CreateProject(customerUuid uuid.UUID, name string) error
-	UpdateProject(project *models.Project) error
+	UpdateProject(projectUuidStr, projectName string) error
 	DeleteProjectByUuid(projectUuidStr string) error
 }
 

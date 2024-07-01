@@ -132,13 +132,13 @@ func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) err
 		return err
 	}
 	if ps.isProjectNameExist(name, projectList) {
-		return errors.New("project name already exists")
+		return CustomErrors.ErrProjectNameExists
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(customerUuid) {
-		return errors.New("user is not allowed to create a project")
+		return CustomErrors.ErrProjectUpdateForbidden
 	}
 	if !ps.strategy.IsAccessibleByCountProjects(len(projectList)) {
-		return errors.New("out of projects limit")
+		return CustomErrors.ErrProjectLimitExceeded
 	}
 	newProject := NewProject(customerUuid, name)
 	ctx = context.Background()
@@ -148,11 +148,16 @@ func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) err
 	return nil
 }
 
-func (ps *ProjectUsecase) UpdateProject(project *models.Project) error {
+func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) error {
+	project, err := ps.GetProjectByUuid(projectUuidStr)
+	if err != nil {
+		return err
+	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
-		return errors.New("user is not allowed to update the project")
+		return CustomErrors.ErrProjectUpdateForbidden
 	}
 	ctx := context.Background()
+	project.Name = projectName
 	if err := ps.projectRepo.Update(ctx, project); err != nil {
 		return err
 	}
@@ -170,7 +175,7 @@ func (ps *ProjectUsecase) DeleteProjectByUuid(projectUuidStr string) error {
 		return err
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
-		return errors.New("user is not allowed to delete the project")
+		return CustomErrors.ErrProjectDeleteForbidden
 	}
 	ctx = context.Background()
 	if err := ps.projectRepo.Delete(ctx, project); err != nil {

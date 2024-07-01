@@ -14,7 +14,11 @@ func (e ApiError) Error() string {
 }
 
 var (
-	ErrProjectUuidInvalid   = ApiError{"Project UUID is invalid", http.StatusBadRequest}
-	ErrProjectAlreadyExists = ApiError{"Project already exists", http.StatusConflict}
-	ErrProjectNotFound      = ApiError{"Project not found", http.StatusNotFound}
+	ErrProjectUuidInvalid     = ApiError{"Project UUID is invalid.", http.StatusBadRequest}
+	ErrProjectAlreadyExists   = ApiError{"Project already exists.", http.StatusConflict}
+	ErrProjectNameExists      = ApiError{"Project name already exists.", http.StatusConflict}
+	ErrProjectNotFound        = ApiError{"Project not found.", http.StatusNotFound}
+	ErrProjectDeleteForbidden = ApiError{"Project delete forbidden.", http.StatusForbidden}
+	ErrProjectUpdateForbidden = ApiError{"Project update forbidden.", http.StatusForbidden}
+	ErrProjectLimitExceeded   = ApiError{"Project limit exceeded.", http.StatusForbidden}
 )

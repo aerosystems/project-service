@@ -4,6 +4,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
+	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/google/uuid"
 	"google.golang.org/api/iterator"
@@ -79,12 +80,13 @@ func (r *ProjectRepo) GetByUuid(ctx context.Context, uuid uuid.UUID) (*models.Pr
 	if err != nil {
 		return nil, err
 	}
-
+	if !doc.Exists() {
+		return nil, CustomErrors.ErrProjectNotFound
+	}
 	var project Project
 	if err := doc.DataTo(&project); err != nil {
 		return nil, err
 	}
-
 	return project.ToModel(), nil
 }
 
