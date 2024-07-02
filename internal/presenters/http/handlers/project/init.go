@@ -2,6 +2,7 @@ package project
 
 import (
 	"encoding/json"
+	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -38,11 +39,11 @@ type CreateProjectEvent struct {
 func (ph Handler) InitProject(c echo.Context) error {
 	var req InitProjectRequest
 	if err := c.Bind(&req); err != nil {
-		return ph.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
+		return ph.ErrorResponse(c, CustomErrors.ErrRequestPayloadIncorrect.HttpCode, CustomErrors.ErrRequestPayloadIncorrect.Message, err)
 	}
 	var event CreateProjectEvent
 	if err := json.Unmarshal(req.Message.Data, &event); err != nil {
-		return ph.ErrorResponse(c, http.StatusUnprocessableEntity, "invalid request body", err)
+		return ph.ErrorResponse(c, CustomErrors.ErrInvalidRequestBody.HttpCode, CustomErrors.ErrInvalidRequestBody.Message, err)
 	}
 	project, err := ph.projectUsecase.InitProject(event.CustomerUuid)
 	if err != nil {

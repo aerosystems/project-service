@@ -148,20 +148,20 @@ func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) err
 	return nil
 }
 
-func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) error {
+func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) (*models.Project, error) {
 	project, err := ps.GetProjectByUuid(projectUuidStr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
-		return CustomErrors.ErrProjectUpdateForbidden
+		return nil, CustomErrors.ErrProjectUpdateForbidden
 	}
 	ctx := context.Background()
 	project.Name = projectName
 	if err := ps.projectRepo.Update(ctx, project); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return project, nil
 }
 
 func (ps *ProjectUsecase) DeleteProjectByUuid(projectUuidStr string) error {

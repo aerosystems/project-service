@@ -1,6 +1,7 @@
 package project
 
 import (
+	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -30,7 +31,7 @@ func (ph Handler) ProjectCreate(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	var requestPayload CreateProjectRequest
 	if err := c.Bind(&requestPayload); err != nil {
-		return ph.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
+		return ph.ErrorResponse(c, CustomErrors.ErrRequestPayloadIncorrect.HttpCode, CustomErrors.ErrRequestPayloadIncorrect.Message, err)
 	}
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
 		return ph.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)

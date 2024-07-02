@@ -1,6 +1,7 @@
 package project
 
 import (
+	"errors"
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/labstack/echo/v4"
@@ -33,10 +34,10 @@ func (ph Handler) UpdateProject(c echo.Context) error {
 	projectUuid := c.Param("projectId")
 	var requestPayload UpdateProjectRequest
 	if err := c.Bind(&requestPayload); err != nil {
-		return ph.ErrorResponse(c, http.StatusUnprocessableEntity, "request payload is incorrect", err)
+		return ph.ErrorResponse(c, CustomErrors.ErrRequestPayloadIncorrect.HttpCode, CustomErrors.ErrRequestPayloadIncorrect.Message, err)
 	}
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return ph.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+		return ph.ErrorResponse(c, CustomErrors.ErrProjectUpdateForbidden.HttpCode, CustomErrors.ErrProjectUpdateForbidden.Message, err)
 	}
 	project, err := ph.projectUsecase.UpdateProject(projectUuid, requestPayload.Name)
 	if err != nil {
@@ -46,5 +47,5 @@ func (ph Handler) UpdateProject(c echo.Context) error {
 		}
 		return ph.ErrorResponse(c, http.StatusInternalServerError, "Unable to update the project.", err)
 	}
-	return ph.SuccessResponse(c, http.StatusOK, "project successfully updated", project)
+	return ph.SuccessResponse(c, http.StatusOK, "project successfully updated", ModelToProject(project))
 }
