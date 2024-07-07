@@ -20,28 +20,29 @@ type CreateProjectRequest struct {
 // @Produce application/json
 // @Param comment body CreateProjectRequest true "raw request body"
 // @Security BearerAuth
-// @Success 201 {object} Response{data=models.Project}
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 422 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 201 {object} Project
+// @Failure 400 {object} echo.HTTPError
+// @Failure 401 {object} echo.HTTPError
+// @Failure 403 {object} echo.HTTPError
+// @Failure 422 {object} echo.HTTPError
+// @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects [post]
 func (ph Handler) ProjectCreate(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	var requestPayload CreateProjectRequest
 	if err := c.Bind(&requestPayload); err != nil {
-		return ph.ErrorResponse(c, CustomErrors.ErrRequestPayloadIncorrect.HttpCode, CustomErrors.ErrRequestPayloadIncorrect.Message, err)
+		return CustomErrors.ErrInvalidRequestBody
 	}
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return ph.ErrorResponse(c, http.StatusForbidden, "creating project is forbidden", err)
+		return echo.NewHTTPError(http.StatusForbidden, "creating project is forbidden")
 	}
 	userUuid, err := uuid.Parse(requestPayload.UserUuid)
 	if err != nil {
-		return ph.ErrorResponse(c, http.StatusBadRequest, "user uuid is incorrect", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "user uuid is incorrect")
 	}
-	if err := ph.projectUsecase.CreateProject(userUuid, requestPayload.Name); err != nil {
-		return ph.ErrorResponse(c, http.StatusInternalServerError, "could not create default project", err)
+	project, err := ph.projectUsecase.CreateProject(userUuid, requestPayload.Name)
+	if err != nil {
+		return err
 	}
-	return ph.SuccessResponse(c, http.StatusCreated, "project successfully created", nil)
+	return c.JSON(http.StatusCreated, ModelToProject(project))
 }

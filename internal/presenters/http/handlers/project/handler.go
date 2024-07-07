@@ -42,3 +42,11 @@ func ModelToProject(project *models.Project) *Project {
 		Token:        project.Token,
 	}
 }
+
+func ModelListToProjectList(projects []models.Project) []Project {
+	projectList := make([]Project, 0, len(projects))
+	for _, project := range projects {
+		projectList = append(projectList, *ModelToProject(&project))
+	}
+	return projectList
+}

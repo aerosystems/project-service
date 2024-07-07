@@ -3,14 +3,15 @@ package handlers
 import (
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/google/uuid"
+	"time"
 )
 
 type ProjectUsecase interface {
-	InitProject(userUuidStr string) (*models.Project, error)
+	InitProject(userUuidStr, subscriptionType string, accessTime time.Time) (*models.Project, error)
 	DetermineStrategy(userUuidStr string, role string) error
 	GetProjectByUuid(projectUuidStr string) (*models.Project, error)
 	GetProjectListByCustomerUuid(customerUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error)
-	CreateProject(customerUuid uuid.UUID, name string) error
+	CreateProject(customerUuid uuid.UUID, name string) (*models.Project, error)
 	UpdateProject(projectUuidStr, projectName string) (*models.Project, error)
 	DeleteProjectByUuid(projectUuidStr string) error
 }

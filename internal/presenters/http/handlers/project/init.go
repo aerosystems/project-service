@@ -5,6 +5,7 @@ import (
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"time"
 )
 
 type InitProjectRequest struct {
@@ -19,7 +20,9 @@ type InitProjectRequestBody struct {
 }
 
 type CreateProjectEvent struct {
-	CustomerUuid string `json:"customerUuid"`
+	CustomerUuid     string    `json:"customerUuid"`
+	SubscriptionType string    `json:"subscriptionType"`
+	AccessTime       time.Time `json:"accessTime"`
 }
 
 // InitProject godoc
@@ -39,16 +42,16 @@ type CreateProjectEvent struct {
 func (ph Handler) InitProject(c echo.Context) error {
 	var req InitProjectRequest
 	if err := c.Bind(&req); err != nil {
-		return ph.ErrorResponse(c, CustomErrors.ErrRequestPayloadIncorrect.HttpCode, CustomErrors.ErrRequestPayloadIncorrect.Message, err)
+		return CustomErrors.ErrInvalidRequestBody
 	}
 	var event CreateProjectEvent
 	if err := json.Unmarshal(req.Message.Data, &event); err != nil {
-		return ph.ErrorResponse(c, CustomErrors.ErrInvalidRequestBody.HttpCode, CustomErrors.ErrInvalidRequestBody.Message, err)
+		return CustomErrors.ErrInvalidRequestPayload
 	}
-	project, err := ph.projectUsecase.InitProject(event.CustomerUuid)
+	project, err := ph.projectUsecase.InitProject(event.CustomerUuid, event.SubscriptionType, event.AccessTime)
 	if err != nil {
-		return ph.ErrorResponse(c, http.StatusInternalServerError, "could not init project", err)
+		return err
 	}
 
-	return ph.SuccessResponse(c, http.StatusCreated, "project successfully created", project)
+	return c.JSON(http.StatusCreated, ModelToProject(project))
 }

@@ -13,26 +13,23 @@ import (
 // @Produce application/json
 // @Param	projectId	path	string	true "ProjectId"
 // @Security BearerAuth
-// @Success 200 {object} Response{data=models.Project}
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
-// @Failure 422 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} Project
+// @Failure 400 {object} echo.HTTPError
+// @Failure 401 {object} echo.HTTPError
+// @Failure 403 {object} echo.HTTPError
+// @Failure 404 {object} echo.HTTPError
+// @Failure 422 {object} echo.HTTPError
+// @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects/{projectUuid} [get]
 func (ph Handler) GetProject(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	projectUuid := c.Param("projectUuid")
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return ph.ErrorResponse(c, http.StatusForbidden, "getting project is forbidden", err)
+		return echo.NewHTTPError(http.StatusForbidden, "Getting project is forbidden.")
 	}
 	project, err := ph.projectUsecase.GetProjectByUuid(projectUuid)
 	if err != nil {
-		return ph.ErrorResponse(c, http.StatusForbidden, "user does not have access to this project", err)
+		return err
 	}
-	if project == nil {
-		return ph.ErrorResponse(c, http.StatusNotFound, "project not found", nil)
-	}
-	return ph.SuccessResponse(c, http.StatusOK, "project successfully found", project)
+	return c.JSON(http.StatusOK, project)
 }

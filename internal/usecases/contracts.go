@@ -20,3 +20,7 @@ type ProjectRepository interface {
 	Update(ctx context.Context, project *models.Project) error
 	Delete(ctx context.Context, project *models.Project) error
 }
+
+type CheckmailEventsAdapter interface {
+	PublishCreateAccessEvent(token, subscriptionType string, accessTime time.Time) error
+}

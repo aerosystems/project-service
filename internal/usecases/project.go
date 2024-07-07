@@ -18,15 +18,17 @@ const (
 )
 
 type ProjectUsecase struct {
-	projectRepo ProjectRepository
-	subsRepo    SubsRepository
-	strategy    Strategy
+	projectRepo            ProjectRepository
+	subsRepo               SubsRepository
+	checkmailEventsAdapter CheckmailEventsAdapter
+	strategy               Strategy
 }
 
-func NewProjectUsecase(projectRepo ProjectRepository, subsRPC SubsRepository) *ProjectUsecase {
+func NewProjectUsecase(projectRepo ProjectRepository, subsRPC SubsRepository, checkmailEventsAdapter CheckmailEventsAdapter) *ProjectUsecase {
 	return &ProjectUsecase{
-		projectRepo: projectRepo,
-		subsRepo:    subsRPC,
+		projectRepo:            projectRepo,
+		subsRepo:               subsRPC,
+		checkmailEventsAdapter: checkmailEventsAdapter,
 	}
 }
 
@@ -99,13 +101,13 @@ func (ps *ProjectUsecase) GetProjectListByCustomerUuid(customerUuid, filterUserU
 }
 
 func (ps *ProjectUsecase) CreateDefaultProject(customerUuid uuid.UUID) error {
-	if err := ps.CreateProject(customerUuid, "default"); err != nil {
+	if _, err := ps.CreateProject(customerUuid, "default"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ps *ProjectUsecase) InitProject(customerUuidStr string) (*models.Project, error) {
+func (ps *ProjectUsecase) InitProject(customerUuidStr string, subscriptionType string, accessTime time.Time) (*models.Project, error) {
 	customerUuid, err := uuid.Parse(customerUuidStr)
 	if err != nil {
 		return nil, CustomErrors.ErrProjectUuidInvalid
@@ -122,30 +124,33 @@ func (ps *ProjectUsecase) InitProject(customerUuidStr string) (*models.Project, 
 	if err != nil {
 		return nil, err
 	}
+	if err := ps.checkmailEventsAdapter.PublishCreateAccessEvent(project.Token, subscriptionType, accessTime); err != nil {
+		return nil, err
+	}
 	return project, nil
 }
 
-func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) error {
+func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) (*models.Project, error) {
 	ctx := context.Background()
 	projectList, err := ps.projectRepo.GetByCustomerUuid(ctx, customerUuid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if ps.isProjectNameExist(name, projectList) {
-		return CustomErrors.ErrProjectNameExists
+		return nil, CustomErrors.ErrProjectNameExists
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(customerUuid) {
-		return CustomErrors.ErrProjectUpdateForbidden
+		return nil, CustomErrors.ErrForbidden
 	}
 	if !ps.strategy.IsAccessibleByCountProjects(len(projectList)) {
-		return CustomErrors.ErrProjectLimitExceeded
+		return nil, CustomErrors.ErrProjectLimitExceeded
 	}
-	newProject := NewProject(customerUuid, name)
+	project := NewProject(customerUuid, name)
 	ctx = context.Background()
-	if err := ps.projectRepo.Create(ctx, newProject); err != nil {
-		return err
+	if err := ps.projectRepo.Create(ctx, project); err != nil {
+		return nil, err
 	}
-	return nil
+	return project, nil
 }
 
 func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) (*models.Project, error) {
@@ -154,7 +159,7 @@ func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) (*mo
 		return nil, err
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
-		return nil, CustomErrors.ErrProjectUpdateForbidden
+		return nil, CustomErrors.ErrForbidden
 	}
 	ctx := context.Background()
 	project.Name = projectName
@@ -175,7 +180,7 @@ func (ps *ProjectUsecase) DeleteProjectByUuid(projectUuidStr string) error {
 		return err
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
-		return CustomErrors.ErrProjectDeleteForbidden
+		return CustomErrors.ErrForbidden
 	}
 	ctx = context.Background()
 	if err := ps.projectRepo.Delete(ctx, project); err != nil {
