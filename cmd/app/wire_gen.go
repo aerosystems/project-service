@@ -11,6 +11,7 @@ import (
 	"context"
 	"firebase.google.com/go/auth"
 	"github.com/aerosystems/project-service/internal/config"
+	"github.com/aerosystems/project-service/internal/infrastructure/adapters/broker"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
 	"github.com/aerosystems/project-service/internal/presenters/http"
@@ -22,6 +23,7 @@ import (
 	"github.com/aerosystems/project-service/internal/usecases"
 	"github.com/aerosystems/project-service/pkg/firebase"
 	"github.com/aerosystems/project-service/pkg/logger"
+	"github.com/aerosystems/project-service/pkg/pubsub"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/sirupsen/logrus"
 )
@@ -39,7 +41,9 @@ func InitApp() *App {
 	firestoreClient := ProvideFirestoreClient(config)
 	projectRepo := ProvideProjectRepo(firestoreClient)
 	subsRepo := ProvideSubsRepo(config)
-	projectUsecase := ProvideProjectUsecase(projectRepo, subsRepo)
+	pubSubClient := ProvidePubSubClient(config)
+	checkmailEventsAdapter := ProvideCheckmailEventAdapter(pubSubClient, config)
+	projectUsecase := ProvideProjectUsecase(projectRepo, subsRepo, checkmailEventsAdapter)
 	handler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenUsecase := ProvideTokenUsecase(projectRepo)
 	tokenHandler := ProvideTokenHandler(baseHandler, tokenUsecase)
@@ -79,8 +83,8 @@ func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handler
 	return handler
 }
 
-func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository) *usecases.ProjectUsecase {
-	projectUsecase := usecases.NewProjectUsecase(projectRepo, subsRepo)
+func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository, checkmailEventsAdapter usecases.CheckmailEventsAdapter) *usecases.ProjectUsecase {
+	projectUsecase := usecases.NewProjectUsecase(projectRepo, subsRepo, checkmailEventsAdapter)
 	return projectUsecase
 }
 
@@ -132,4 +136,16 @@ func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
 		panic(err)
 	}
 	return app.Client
+}
+
+func ProvidePubSubClient(cfg *config.Config) *PubSub.Client {
+	client, err := PubSub.NewClientWithAuth(cfg.GoogleApplicationCredentials)
+	if err != nil {
+		panic(err)
+	}
+	return client
+}
+
+func ProvideCheckmailEventAdapter(pubSubClient *PubSub.Client, cfg *config.Config) *broker.CheckmailEventsAdapter {
+	return broker.NewCheckmailEventsAdapter(pubSubClient, cfg.CheckmailTopicId, cfg.CheckmailSubName, cfg.CheckmailCreateAccessEndpoint)
 }

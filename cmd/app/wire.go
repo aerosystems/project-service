@@ -8,6 +8,7 @@ import (
 	"context"
 	"firebase.google.com/go/auth"
 	"github.com/aerosystems/project-service/internal/config"
+	"github.com/aerosystems/project-service/internal/infrastructure/adapters/broker"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
 	"github.com/aerosystems/project-service/internal/presenters/http"
@@ -19,6 +20,7 @@ import (
 	"github.com/aerosystems/project-service/internal/usecases"
 	"github.com/aerosystems/project-service/pkg/firebase"
 	"github.com/aerosystems/project-service/pkg/logger"
+	PubSub "github.com/aerosystems/project-service/pkg/pubsub"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/google/wire"
 	"github.com/sirupsen/logrus"
@@ -27,6 +29,7 @@ import (
 //go:generate wire
 func InitApp() *App {
 	panic(wire.Build(
+		wire.Bind(new(usecases.CheckmailEventsAdapter), new(*broker.CheckmailEventsAdapter)),
 		wire.Bind(new(handlers.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(handlers.TokenUsecase), new(*usecases.TokenUsecase)),
 		wire.Bind(new(RpcServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
@@ -48,6 +51,8 @@ func InitApp() *App {
 		ProvideFirestoreClient,
 		ProvideFirebaseAuthMiddleware,
 		ProvideFirebaseAuthClient,
+		ProvidePubSubClient,
+		ProvideCheckmailEventAdapter,
 	))
 }
 
@@ -87,7 +92,7 @@ func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handler
 	panic(wire.Build(token.NewTokenHandler))
 }
 
-func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository) *usecases.ProjectUsecase {
+func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository, checkmailEventsAdapter usecases.CheckmailEventsAdapter) *usecases.ProjectUsecase {
 	panic(wire.Build(usecases.NewProjectUsecase))
 }
 
@@ -123,4 +128,16 @@ func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
 		panic(err)
 	}
 	return app.Client
+}
+
+func ProvidePubSubClient(cfg *config.Config) *PubSub.Client {
+	client, err := PubSub.NewClientWithAuth(cfg.GoogleApplicationCredentials)
+	if err != nil {
+		panic(err)
+	}
+	return client
+}
+
+func ProvideCheckmailEventAdapter(pubSubClient *PubSub.Client, cfg *config.Config) *broker.CheckmailEventsAdapter {
+	return broker.NewCheckmailEventsAdapter(pubSubClient, cfg.CheckmailTopicId, cfg.CheckmailSubName, cfg.CheckmailCreateAccessEndpoint)
 }

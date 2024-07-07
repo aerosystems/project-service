@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	PubSub "github.com/aerosystems/customer-service/pkg/pubsub"
+	PubSub "github.com/aerosystems/project-service/pkg/pubsub"
 	"time"
 )
 
