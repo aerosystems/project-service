@@ -11,7 +11,7 @@ import (
 // @Accept  json
 // @Produce application/json
 // @Security X-Api-Key
-// @Success 204 {object}
+// @Success 204 {object} struct{} "No Content"
 // @Failure 401 {object} echo.HTTPError
 // @Router /v1/token/validate [get]
 func (th Handler) ValidateToken(c echo.Context) error {

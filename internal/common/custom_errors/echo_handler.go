@@ -7,14 +7,12 @@ import (
 )
 
 type EchoError struct {
-	mode   EchoHandlerMode
-	errors []ApiError
+	mode EchoHandlerMode
 }
 
 func NewEchoErrorHandler(mode string) echo.HTTPErrorHandler {
 	e := EchoError{
-		mode:   NewEchoHandlerMode(mode),
-		errors: apiErrors,
+		mode: NewEchoHandlerMode(mode),
 	}
 	return e.Handler
 }

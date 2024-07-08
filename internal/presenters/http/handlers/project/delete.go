@@ -13,7 +13,7 @@ import (
 // @Produce application/json
 // @Param	projectId	path	string	true "ProjectId"
 // @Security BearerAuth
-// @Success 204 {object}
+// @Success 204 {object} struct{} "No Content"
 // @Failure 401 {object} echo.HTTPError
 // @Failure 403 {object} echo.HTTPError
 // @Failure 404 {object} echo.HTTPError
