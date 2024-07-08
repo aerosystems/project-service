@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"firebase.google.com/go/auth"
+	"github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/config"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/broker"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
@@ -25,6 +26,7 @@ import (
 	"github.com/aerosystems/project-service/pkg/logger"
 	"github.com/aerosystems/project-service/pkg/pubsub"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
+	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,6 +37,7 @@ func InitApp() *App {
 	logger := ProvideLogger()
 	logrusLogger := ProvideLogrusLogger(logger)
 	config := ProvideConfig()
+	httpErrorHandler := ProvideErrorHandler(config)
 	client := ProvideFirebaseAuthClient(config)
 	firebaseAuth := ProvideFirebaseAuthMiddleware(client)
 	baseHandler := ProvideBaseHandler(logrusLogger, config)
@@ -47,7 +50,7 @@ func InitApp() *App {
 	handler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenUsecase := ProvideTokenUsecase(projectRepo)
 	tokenHandler := ProvideTokenHandler(baseHandler, tokenUsecase)
-	server := ProvideHttpServer(logrusLogger, config, firebaseAuth, handler, tokenHandler)
+	server := ProvideHttpServer(logrusLogger, httpErrorHandler, config, firebaseAuth, handler, tokenHandler)
 	rpcServerServer := ProvideRpcServer(logrusLogger, projectUsecase)
 	app := ProvideApp(logrusLogger, config, server, rpcServerServer)
 	return app
@@ -100,8 +103,8 @@ func ProvideProjectRepo(client *firestore.Client) *fire.ProjectRepo {
 
 // wire.go:
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
-	return HttpServer.NewServer(log, firebaseAuthMiddleware, projectHandler, tokenHandler)
+func ProvideHttpServer(log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
+	return HttpServer.NewServer(log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
 func ProvideLogrusLogger(log *logger.Logger) *logrus.Logger {
@@ -148,4 +151,9 @@ func ProvidePubSubClient(cfg *config.Config) *PubSub.Client {
 
 func ProvideCheckmailEventAdapter(pubSubClient *PubSub.Client, cfg *config.Config) *broker.CheckmailEventsAdapter {
 	return broker.NewCheckmailEventsAdapter(pubSubClient, cfg.CheckmailTopicId, cfg.CheckmailSubName, cfg.CheckmailCreateAccessEndpoint)
+}
+
+func ProvideErrorHandler(cfg *config.Config) *echo.HTTPErrorHandler {
+	errorHandler := CustomErrors.NewEchoErrorHandler(cfg.Mode)
+	return &errorHandler
 }

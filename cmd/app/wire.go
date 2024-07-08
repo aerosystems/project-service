@@ -7,6 +7,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"firebase.google.com/go/auth"
+	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/config"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/broker"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
@@ -23,6 +24,7 @@ import (
 	PubSub "github.com/aerosystems/project-service/pkg/pubsub"
 	"github.com/aerosystems/project-service/pkg/rpc_client"
 	"github.com/google/wire"
+	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
@@ -53,6 +55,7 @@ func InitApp() *App {
 		ProvideFirebaseAuthClient,
 		ProvidePubSubClient,
 		ProvideCheckmailEventAdapter,
+		ProvideErrorHandler,
 	))
 }
 
@@ -68,8 +71,8 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHttpServer(log *logrus.Logger, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
-	return HttpServer.NewServer(log, firebaseAuthMiddleware, projectHandler, tokenHandler)
+func ProvideHttpServer(log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
+	return HttpServer.NewServer(log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
 func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {
@@ -140,4 +143,9 @@ func ProvidePubSubClient(cfg *config.Config) *PubSub.Client {
 
 func ProvideCheckmailEventAdapter(pubSubClient *PubSub.Client, cfg *config.Config) *broker.CheckmailEventsAdapter {
 	return broker.NewCheckmailEventsAdapter(pubSubClient, cfg.CheckmailTopicId, cfg.CheckmailSubName, cfg.CheckmailCreateAccessEndpoint)
+}
+
+func ProvideErrorHandler(cfg *config.Config) *echo.HTTPErrorHandler {
+	errorHandler := CustomErrors.NewEchoErrorHandler(cfg.Mode)
+	return &errorHandler
 }

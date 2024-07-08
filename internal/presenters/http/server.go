@@ -21,17 +21,22 @@ type Server struct {
 
 func NewServer(
 	log *logrus.Logger,
+	errorHandler *echo.HTTPErrorHandler,
 	firebaseAuthMiddleware *middleware.FirebaseAuth,
 	projectHandler *project.Handler,
 	tokenHandler *token.Handler,
 ) *Server {
-	return &Server{
+	server := &Server{
 		log:                    log,
 		echo:                   echo.New(),
 		firebaseAuthMiddleware: firebaseAuthMiddleware,
 		projectHandler:         projectHandler,
 		tokenHandler:           tokenHandler,
 	}
+	if errorHandler != nil {
+		server.echo.HTTPErrorHandler = *errorHandler
+	}
+	return server
 }
 
 func (s *Server) Run() error {
