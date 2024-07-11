@@ -71,8 +71,8 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHttpServer(log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
-	return HttpServer.NewServer(log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
+func ProvideHttpServer(cfg *config.Config, log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
+	return HttpServer.NewServer(cfg.WebPort, log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
 func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {

@@ -50,7 +50,7 @@ func InitApp() *App {
 	handler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenUsecase := ProvideTokenUsecase(projectRepo)
 	tokenHandler := ProvideTokenHandler(baseHandler, tokenUsecase)
-	server := ProvideHttpServer(logrusLogger, httpErrorHandler, config, firebaseAuth, handler, tokenHandler)
+	server := ProvideHttpServer(config, logrusLogger, httpErrorHandler, firebaseAuth, handler, tokenHandler)
 	rpcServerServer := ProvideRpcServer(logrusLogger, projectUsecase)
 	app := ProvideApp(logrusLogger, config, server, rpcServerServer)
 	return app
@@ -103,8 +103,8 @@ func ProvideProjectRepo(client *firestore.Client) *fire.ProjectRepo {
 
 // wire.go:
 
-func ProvideHttpServer(log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, cfg *config.Config, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
-	return HttpServer.NewServer(log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
+func ProvideHttpServer(cfg *config.Config, log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
+	return HttpServer.NewServer(cfg.WebPort, log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
 func ProvideLogrusLogger(log *logger.Logger) *logrus.Logger {
