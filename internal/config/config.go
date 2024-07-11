@@ -23,6 +23,8 @@ func NewConfig() *Config {
 		GcpProjectId:                  viper.GetString("GCP_PROJECT_ID"),
 		GoogleApplicationCredentials:  viper.GetString("GOOGLE_APPLICATION_CREDENTIALS"),
 		SubsServiceRPCAddress:         viper.GetString("PRJCT_SUBS_SERVICE_RPC_ADDR"),
+		CheckmailTopicId:              viper.GetString("PRJCT_CHECKMAIL_TOPIC_ID"),
+		CheckmailSubName:              viper.GetString("PRJCT_CHECKMAIL_SUB_NAME"),
 		CheckmailCreateAccessEndpoint: viper.GetString("PRJCT_CHECKMAIL_CREATE_ACCESS_ENDPOINT"),
 	}
 }

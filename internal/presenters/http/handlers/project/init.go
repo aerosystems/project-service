@@ -2,6 +2,7 @@ package project
 
 import (
 	"encoding/json"
+	"fmt"
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -32,7 +33,7 @@ type CreateProjectEvent struct {
 // @Accept json
 // @Produce json
 // @Param customerUuid body string true "Customer UUID"
-// @Success 201 {object} Project
+// @Success 200 {object} Project
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
 // @Failure 403 {object} ErrorResponse
@@ -50,6 +51,7 @@ func (ph Handler) InitProject(c echo.Context) error {
 	}
 	project, err := ph.projectUsecase.InitProject(event.CustomerUuid, event.SubscriptionType, event.AccessTime)
 	if err != nil {
+		fmt.Printf("Error: %v\n. Type: %T\n", err, err)
 		return err
 	}
 

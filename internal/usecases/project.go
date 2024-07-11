@@ -112,14 +112,17 @@ func (ps *ProjectUsecase) InitProject(customerUuidStr string, subscriptionType s
 	if err != nil {
 		return nil, CustomErrors.ErrProjectUuidInvalid
 	}
+
 	ctx := context.Background()
 	if defaultCustomerProject, err := ps.projectRepo.GetByCustomerUuidAndName(ctx, customerUuid, defaultProjectName); err == nil && defaultCustomerProject != nil {
 		return nil, CustomErrors.ErrProjectAlreadyExists
 	}
+
 	newDefaultProject := NewProject(customerUuid, defaultProjectName)
 	if err := ps.projectRepo.Create(ctx, newDefaultProject); err != nil {
 		return nil, err
 	}
+
 	project, err := ps.projectRepo.GetByCustomerUuidAndName(ctx, customerUuid, defaultProjectName)
 	if err != nil {
 		return nil, err
