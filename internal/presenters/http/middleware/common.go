@@ -3,7 +3,9 @@ package middleware
 import (
 	"context"
 	"errors"
+	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/aerosystems/project-service/internal/models"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 )
@@ -11,20 +13,48 @@ import (
 type ctxKey int
 
 const (
-	userContextKey ctxKey = iota
+	accessTokenClaimsContextKey ctxKey = iota
 )
 
-type User struct {
+type accessTokenClaims struct {
 	Uuid        string
 	Email       string
 	Role        string
 	DisplayName string
 }
 
-func GetUserFromContext(ctx context.Context) (User, error) {
-	user, ok := ctx.Value(userContextKey).(User)
+type UserClaims struct {
+	Uuid        uuid.UUID
+	Email       string
+	Role        models.Role
+	DisplayName string
+}
+
+func NewUserClaims(claims accessTokenClaims) (UserClaims, error) {
+	uuid, err := uuid.Parse(claims.Uuid)
+	if err != nil {
+		return UserClaims{}, err
+	}
+	role := models.RoleFromString(claims.Role)
+	if role == models.UnknownRole {
+		return UserClaims{}, CustomErrors.ErrUnknownUserRole
+	}
+	return UserClaims{
+		Uuid:        uuid,
+		Email:       claims.Email,
+		Role:        role,
+		DisplayName: claims.DisplayName,
+	}, nil
+}
+
+func GetUserClaimsFromContext(ctx context.Context) (UserClaims, error) {
+	claims, ok := ctx.Value(accessTokenClaimsContextKey).(accessTokenClaims)
 	if !ok {
-		return User{}, errors.New("user not found in context")
+		return UserClaims{}, CustomErrors.ErrForbidden
+	}
+	user, err := NewUserClaims(claims)
+	if err != nil {
+		return UserClaims{}, CustomErrors.ErrForbidden
 	}
 	return user, nil
 }

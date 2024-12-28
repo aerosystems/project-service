@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"firebase.google.com/go/auth"
+	"fmt"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -38,10 +39,13 @@ func (fa FirebaseAuth) RoleBased(roles ...models.Role) echo.MiddlewareFunc {
 			//	return echo.NewHTTPError(http.StatusForbidden, "access denied")
 			//}
 
-			ctx = context.WithValue(ctx, userContextKey, User{
+			ctx = context.WithValue(ctx, accessTokenClaimsContextKey, accessTokenClaims{
 				Uuid:  token.UID,
 				Email: token.Claims["email"].(string),
+				Role:  "customer",
 			})
+
+			fmt.Printf("User %s with email %s\n", token.UID, token.Claims["email"].(string))
 
 			c.SetRequest(c.Request().WithContext(ctx))
 			return next(c)
