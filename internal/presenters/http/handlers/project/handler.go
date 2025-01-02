@@ -28,7 +28,7 @@ type Project struct {
 func (p *Project) ToModel() *models.Project {
 	return &models.Project{
 		Uuid:         p.Uuid,
-		CustomerUuid: p.CustomerUuid,
+		CustomerUUID: p.CustomerUuid,
 		Name:         p.Name,
 		Token:        p.Token,
 	}
@@ -37,7 +37,7 @@ func (p *Project) ToModel() *models.Project {
 func ModelToProject(project *models.Project) *Project {
 	return &Project{
 		Uuid:         project.Uuid,
-		CustomerUuid: project.CustomerUuid,
+		CustomerUuid: project.CustomerUUID,
 		Name:         project.Name,
 		Token:        project.Token,
 	}

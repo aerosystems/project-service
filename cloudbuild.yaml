@@ -1,0 +1,53 @@
+steps:
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t',
+            '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/customer-service:$SHORT_SHA', '.' ]
+    id: BUILD_IMAGE
+
+  # Docker push to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/customer-service:$SHORT_SHA' ]
+    id: PUSH_IMAGE
+    waitFor: [ BUILD_IMAGE ]
+
+  # Replace YAML values using envsubst
+  - name: "alpine"
+    env:
+      - "APP_NAME=${_APP_NAME}"
+      - "IMAGE=${_IMAGE}"
+    script: |
+      sed -i s@%APP_NAME%@${APP_NAME}@g service.yaml
+      sed -i s@%IMAGE%@${IMAGE}@g service.yaml
+    id: REPLACE_YAML_VALUE
+    waitFor: [ "-" ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "services",
+        "replace",
+        "service.yaml",
+        "--region",
+        "${_REGION}",
+      ]
+    id: DEPLOY_CONTAINER
+    waitFor:
+      - REPLACE_YAML_VALUE
+      - PUSH_IMAGE
+
+# Deploy to Cloud Run
+substitutions:
+  _APP_NAME: ${REPO_NAME}
+  _REGION: ${LOCATION}
+  _IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/customer-service:${SHORT_SHA}
+
+# Store images in Google Artifact Registry
+images:
+  - ${_IMAGE}
+
+# Log only to Google Cloud Logging
+options:
+  logging: CLOUD_LOGGING_ONLY

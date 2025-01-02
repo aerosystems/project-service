@@ -7,7 +7,7 @@ import (
 
 type Project struct {
 	Uuid         uuid.UUID
-	CustomerUuid uuid.UUID
+	CustomerUUID uuid.UUID
 	Name         string
 	Token        string
 	CreatedAt    time.Time

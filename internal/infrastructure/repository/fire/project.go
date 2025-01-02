@@ -26,18 +26,18 @@ func NewProjectRepo(client *firestore.Client) *ProjectRepo {
 }
 
 type Project struct {
-	Uuid         string    `firestore:"uuid"`
-	CustomerUuid string    `firestore:"customer_uuid"`
-	Name         string    `firestore:"name"`
-	Token        string    `firestore:"token"`
-	CreatedAt    time.Time `firestore:"created_at"`
-	UpdatedAt    time.Time `firestore:"updated_at"`
+	Uuid         string    `FirestoreRepo:"uuid"`
+	CustomerUuid string    `FirestoreRepo:"customer_uuid"`
+	Name         string    `FirestoreRepo:"name"`
+	Token        string    `FirestoreRepo:"token"`
+	CreatedAt    time.Time `FirestoreRepo:"created_at"`
+	UpdatedAt    time.Time `FirestoreRepo:"updated_at"`
 }
 
 func (p *Project) ToModel() *models.Project {
 	return &models.Project{
 		Uuid:         uuid.MustParse(p.Uuid),
-		CustomerUuid: uuid.MustParse(p.CustomerUuid),
+		CustomerUUID: uuid.MustParse(p.CustomerUuid),
 		Name:         p.Name,
 		Token:        p.Token,
 		CreatedAt:    p.CreatedAt,
@@ -48,7 +48,7 @@ func (p *Project) ToModel() *models.Project {
 func ModelToProject(project *models.Project) *Project {
 	return &Project{
 		Uuid:         project.Uuid.String(),
-		CustomerUuid: project.CustomerUuid.String(),
+		CustomerUuid: project.CustomerUUID.String(),
 		Name:         project.Name,
 		Token:        project.Token,
 		CreatedAt:    project.CreatedAt,

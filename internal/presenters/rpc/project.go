@@ -35,7 +35,7 @@ func (s Server) GetProject(projectToken string, resp *ProjectRPCPayload) error {
 	if err != nil {
 		return err
 	}
-	resp.UserUuid = project.CustomerUuid
+	resp.UserUuid = project.CustomerUUID
 	resp.Name = project.Name
 	resp.Token = project.Token
 	return nil
@@ -50,7 +50,7 @@ func (s Server) GetProjectList(userUuid uuid.UUID, resp *[]ProjectRPCPayload) er
 		return err
 	}
 	for _, project := range projectList {
-		payload := NewProjectRPCPayload(project.Uuid.String(), project.CustomerUuid, project.Name, project.Token)
+		payload := NewProjectRPCPayload(project.Uuid.String(), project.CustomerUUID, project.Name, project.Token)
 		*resp = append(*resp, *payload)
 	}
 	return nil

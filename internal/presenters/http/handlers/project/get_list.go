@@ -14,7 +14,7 @@ import (
 // @Accept  json
 // @Produce application/json
 // @Security BearerAuth
-// @Param	userUuid	query	string	false "CustomerUuid"
+// @Param	userUuid	query	string	false "CustomerUUID"
 // @Success 200 {object} []Project
 // @Failure 401 {object} echo.HTTPError
 // @Failure 404 {object} echo.HTTPError

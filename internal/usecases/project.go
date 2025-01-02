@@ -68,7 +68,7 @@ func (ps *ProjectUsecase) GetProjectByUuid(projectUuidStr string) (*models.Proje
 	if err != nil {
 		return nil, err
 	}
-	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
+	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUUID) {
 		return nil, errors.New("user is not allowed to access the project")
 	}
 	return project, nil
@@ -81,7 +81,7 @@ func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, erro
 		return nil, err
 	}
 	// TODO: if it statement is needed, we should determine strategy before
-	//if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
+	//if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUUID) {
 	//	return nil, errors.New("user is not allowed to access the project")
 	//}
 	return project, nil
@@ -161,7 +161,7 @@ func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) (*mo
 	if err != nil {
 		return nil, err
 	}
-	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
+	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUUID) {
 		return nil, CustomErrors.ErrForbidden
 	}
 	ctx := context.Background()
@@ -182,7 +182,7 @@ func (ps *ProjectUsecase) DeleteProjectByUuid(projectUuidStr string) error {
 	if err != nil {
 		return err
 	}
-	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUuid) {
+	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUUID) {
 		return CustomErrors.ErrForbidden
 	}
 	ctx = context.Background()
@@ -221,7 +221,7 @@ func NewProject(customerUuid uuid.UUID, name string) *models.Project {
 	return &models.Project{
 		Uuid:         uuid.New(),
 		Token:        generateToken(),
-		CustomerUuid: customerUuid,
+		CustomerUUID: customerUuid,
 		Name:         name,
 	}
 }
