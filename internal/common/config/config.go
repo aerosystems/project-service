@@ -5,13 +5,15 @@ import (
 )
 
 const (
-	defaultMode    = "prod"
-	defaultWebPort = 8080
+	defaultMode  = "prod"
+	defaultPort  = 8080
+	defaultProto = "http"
 )
 
 type Config struct {
 	Mode                          string
-	WebPort                       int
+	Port                          int
+	Proto                         string
 	GcpProjectId                  string
 	GoogleApplicationCredentials  string
 	SubsServiceRPCAddress         string
@@ -22,17 +24,22 @@ type Config struct {
 
 func NewConfig() *Config {
 	viper.AutomaticEnv()
-	mode := viper.GetString("PRJCT_MODE")
+	mode := viper.GetString("MODE")
 	if mode == "" {
 		mode = defaultMode
 	}
-	webPort := viper.GetInt("PORT")
-	if webPort == 0 {
-		webPort = defaultWebPort
+	port := viper.GetInt("PORT")
+	if port == 0 {
+		port = defaultPort
+	}
+	proto := viper.GetString("PROTO")
+	if proto == "" {
+		proto = defaultProto
 	}
 	return &Config{
 		Mode:                          mode,
-		WebPort:                       webPort,
+		Port:                          port,
+		Proto:                         proto,
 		GcpProjectId:                  viper.GetString("GCP_PROJECT_ID"),
 		GoogleApplicationCredentials:  viper.GetString("GOOGLE_APPLICATION_CREDENTIALS"),
 		SubsServiceRPCAddress:         viper.GetString("PRJCT_SUBS_SERVICE_RPC_ADDR"),

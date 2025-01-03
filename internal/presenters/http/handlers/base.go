@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/aerosystems/project-service/internal/config"
+	"github.com/aerosystems/project-service/internal/common/config"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 )

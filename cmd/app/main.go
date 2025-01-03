@@ -36,13 +36,18 @@ func main() {
 
 	group, ctx := errgroup.WithContext(ctx)
 
-	group.Go(func() error {
-		return app.httpServer.Run()
-	})
-
-	group.Go(func() error {
-		return app.rpcServer.Run()
-	})
+	switch app.cfg.Proto {
+	case "http":
+		group.Go(func() error {
+			return app.httpServer.Run()
+		})
+	case "grpc":
+		group.Go(func() error {
+			return app.grpcServer.Run()
+		})
+	default:
+		app.log.Fatalf("unknown protocol: %s", app.cfg.Proto)
+	}
 
 	group.Go(func() error {
 		return app.handleSignals(ctx, cancel)

@@ -100,11 +100,8 @@ func (ps *ProjectUsecase) GetProjectListByCustomerUuid(customerUuid, filterUserU
 	return projectList, nil
 }
 
-func (ps *ProjectUsecase) CreateDefaultProject(customerUuid uuid.UUID) error {
-	if _, err := ps.CreateProject(customerUuid, "default"); err != nil {
-		return err
-	}
-	return nil
+func (ps *ProjectUsecase) CreateDefaultProject(customerUuid uuid.UUID) (*models.Project, error) {
+	return ps.CreateProject(customerUuid, "default")
 }
 
 func (ps *ProjectUsecase) InitProject(customerUuidStr string, subscriptionType string, accessTime time.Time) (*models.Project, error) {
@@ -172,7 +169,7 @@ func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) (*mo
 	return project, nil
 }
 
-func (ps *ProjectUsecase) DeleteProjectByUuid(projectUuidStr string) error {
+func (ps *ProjectUsecase) DeleteProject(projectUuidStr string) error {
 	projectUuid, err := uuid.Parse(projectUuidStr)
 	if err != nil {
 		return CustomErrors.ErrProjectUuidInvalid

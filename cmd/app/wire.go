@@ -7,17 +7,17 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"firebase.google.com/go/auth"
+	"github.com/aerosystems/project-service/internal/common/config"
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
-	"github.com/aerosystems/project-service/internal/config"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/broker"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
+	GRPCServer "github.com/aerosystems/project-service/internal/presenters/grpc"
 	"github.com/aerosystems/project-service/internal/presenters/http"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers/project"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers/token"
 	"github.com/aerosystems/project-service/internal/presenters/http/middleware"
-	"github.com/aerosystems/project-service/internal/presenters/rpc"
 	"github.com/aerosystems/project-service/internal/usecases"
 	"github.com/aerosystems/project-service/pkg/firebase"
 	"github.com/aerosystems/project-service/pkg/logger"
@@ -32,16 +32,15 @@ import (
 func InitApp() *App {
 	panic(wire.Build(
 		wire.Bind(new(usecases.CheckmailEventsAdapter), new(*broker.CheckmailEventsAdapter)),
+		wire.Bind(new(GRPCServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(handlers.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(handlers.TokenUsecase), new(*usecases.TokenUsecase)),
-		wire.Bind(new(RpcServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(usecases.SubsRepository), new(*RpcRepo.SubsRepo)),
 		wire.Bind(new(usecases.ProjectRepository), new(*fire.ProjectRepo)),
 		ProvideApp,
 		ProvideLogger,
 		ProvideConfig,
 		ProvideHttpServer,
-		ProvideRpcServer,
 		ProvideLogrusLogger,
 		ProvideBaseHandler,
 		ProvideProjectHandler,
@@ -56,10 +55,12 @@ func InitApp() *App {
 		ProvidePubSubClient,
 		ProvideCheckmailEventAdapter,
 		ProvideErrorHandler,
+		ProvideGRPCHandlers,
+		ProvideGRPCServer,
 	))
 }
 
-func ProvideApp(log *logrus.Logger, cfg *config.Config, httpServer *HttpServer.Server, rpcServer *RpcServer.Server) *App {
+func ProvideApp(log *logrus.Logger, cfg *config.Config, httpServer *HttpServer.Server, grpcServer *GRPCServer.Server) *App {
 	panic(wire.Build(NewApp))
 }
 
@@ -72,11 +73,15 @@ func ProvideConfig() *config.Config {
 }
 
 func ProvideHttpServer(cfg *config.Config, log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
-	return HttpServer.NewServer(cfg.WebPort, log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
+	return HttpServer.NewServer(cfg.Port, log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
-func ProvideRpcServer(log *logrus.Logger, projectUsecase RpcServer.ProjectUsecase) *RpcServer.Server {
-	panic(wire.Build(RpcServer.NewServer))
+func ProvideGRPCServer(cfg *config.Config, log *logrus.Logger, grpcHandlers *GRPCServer.Handler) *GRPCServer.Server {
+	return GRPCServer.NewGRPCServer(cfg.Port, log, grpcHandlers)
+}
+
+func ProvideGRPCHandlers(projectUsecase GRPCServer.ProjectUsecase) *GRPCServer.Handler {
+	panic(wire.Build(GRPCServer.NewGRPCHandler))
 }
 
 func ProvideLogrusLogger(log *logger.Logger) *logrus.Logger {

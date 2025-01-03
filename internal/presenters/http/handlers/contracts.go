@@ -13,7 +13,7 @@ type ProjectUsecase interface {
 	GetProjectListByCustomerUuid(customerUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error)
 	CreateProject(customerUuid uuid.UUID, name string) (*models.Project, error)
 	UpdateProject(projectUuidStr, projectName string) (*models.Project, error)
-	DeleteProjectByUuid(projectUuidStr string) error
+	DeleteProject(projectUuidStr string) error
 }
 
 type TokenUsecase interface {

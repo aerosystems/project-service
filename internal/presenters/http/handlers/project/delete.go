@@ -25,7 +25,7 @@ func (ph Handler) ProjectDelete(c echo.Context) error {
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
 		return echo.NewHTTPError(http.StatusForbidden, "Deleting a project is forbidden.")
 	}
-	if err := ph.projectUsecase.DeleteProjectByUuid(projectUuid); err != nil {
+	if err := ph.projectUsecase.DeleteProject(projectUuid); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusNoContent, nil)

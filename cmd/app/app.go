@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/aerosystems/project-service/internal/config"
+	"github.com/aerosystems/project-service/internal/common/config"
+	GRPCServer "github.com/aerosystems/project-service/internal/presenters/grpc"
 	"github.com/aerosystems/project-service/internal/presenters/http"
-	"github.com/aerosystems/project-service/internal/presenters/rpc"
 	"github.com/sirupsen/logrus"
 )
 
@@ -11,19 +11,19 @@ type App struct {
 	log        *logrus.Logger
 	cfg        *config.Config
 	httpServer *HttpServer.Server
-	rpcServer  *RpcServer.Server
+	grpcServer *GRPCServer.Server
 }
 
 func NewApp(
 	log *logrus.Logger,
 	cfg *config.Config,
 	httpServer *HttpServer.Server,
-	rpcServer *RpcServer.Server,
+	grpcServer *GRPCServer.Server,
 ) *App {
 	return &App{
 		log:        log,
 		cfg:        cfg,
 		httpServer: httpServer,
-		rpcServer:  rpcServer,
+		grpcServer: grpcServer,
 	}
 }
