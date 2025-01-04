@@ -61,7 +61,7 @@ spec:
         - name: project-service-grpc
           image: "%IMAGE%"
           ports:
-            - name: grpc1
+            - name: h2c
               containerPort: 50051
           env:
             - name: GCP_PROJECT_ID
