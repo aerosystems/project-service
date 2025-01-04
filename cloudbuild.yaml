@@ -56,7 +56,7 @@ steps:
         "run",
         "services",
         "replace",
-        "service-http.yaml",
+        "service-grpc.yaml",
         "--region",
         "${_REGION}",
       ]
