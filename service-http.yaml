@@ -1,0 +1,70 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: "%APP_NAME%"
+  labels:
+    cloud.googleapis.com/location: europe-west1
+  annotations:
+    run.googleapis.com/client-name: cloud-console
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+spec:
+  template:
+    metadata:
+      labels:
+        run.googleapis.com/startupProbeType: Default
+      annotations:
+        autoscaling.knative.dev/maxScale: '100'
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/client-name: cloud-console
+        run.googleapis.com/startup-cpu-boost: 'true'
+    spec:
+      containerConcurrency: 1000
+      timeoutSeconds: 300
+      serviceAccountName: 244108678816-compute@developer.gserviceaccount.com
+      containers:
+        - name: project-service
+          image: "%IMAGE%"
+          ports:
+            - name: http1
+              containerPort: 80
+          env:
+            - name: GCP_PROJECT_ID
+              value: verifire-60d1b
+            - name: MODE
+              value: dev
+            - name: PROTO
+              value: http
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/secret/verifire-60d1b-3a7b22c9842d
+            - name: PRJCT_SUBS_SERVICE_RPC_ADDR
+              value: subscription-service:5001
+            - name: PRJCT_CHECKMAIL_TOPIC_ID
+              value: checkmail-topic
+            - name: PRJCT_CHECKMAIL_SUB_NAME
+              value: checkmail-sub
+            - name: PRJCT_CHECKMAIL_CREATE_ACCESS_ENDPOINT
+              value: http://checkmail-service:8080/v1/access
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          volumeMounts:
+            - name: verifire-60d1b-3a7b22c9842d
+              mountPath: /app/secret
+          startupProbe:
+            timeoutSeconds: 240
+            periodSeconds: 240
+            failureThreshold: 1
+            tcpSocket:
+              port: 80
+      volumes:
+        - name: verifire-60d1b-3a7b22c9842d
+          secret:
+            secretName: verifire-60d1b-3a7b22c9842d
+            items:
+              - key: latest
+                path: verifire-60d1b-3a7b22c9842d
+  traffic:
+    - percent: 100
+      latestRevision: true

@@ -11,16 +11,15 @@ steps:
     id: PUSH_IMAGE
     waitFor: [ BUILD_IMAGE ]
 
-  # Replace YAML values using envsubst
+  # Replace YAML values using envsubst for HTTP service
   - name: "alpine"
     env:
-      - "APP_NAME=${_APP_NAME}"
+      - "APP_NAME=${_APP_NAME_HTTP}"
       - "IMAGE=${_IMAGE}"
     script: |
-      sed -i s@%APP_NAME%@${APP_NAME}@g service.yaml
-      sed -i s@%IMAGE%@${IMAGE}@g service.yaml
-      sed -i s@%PROTO%@${PROTO}@g service.yaml
-    id: REPLACE_YAML_VALUE
+      sed -i s@%APP_NAME%@${APP_NAME}@g service-http.yaml
+      sed -i s@%IMAGE%@${IMAGE}@g service-http.yaml
+    id: REPLACE_YAML_VALUE_HTTP
     waitFor: [ "-" ]
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
@@ -30,18 +29,46 @@ steps:
         "run",
         "services",
         "replace",
-        "service.yaml",
+        "service-http.yaml",
         "--region",
         "${_REGION}",
       ]
-    id: DEPLOY_CONTAINER
+    id: DEPLOY_CONTAINER_HTTP
     waitFor:
-      - REPLACE_YAML_VALUE
+      - REPLACE_YAML_VALUE_HTTP
+      - PUSH_IMAGE
+
+  # Replace YAML values using envsubst for gRPC service
+  - name: "alpine"
+    env:
+      - "APP_NAME=${_APP_NAME_GRPC}"
+      - "IMAGE=${_IMAGE}"
+    script: |
+      sed -i s@%APP_NAME%@${APP_NAME}@g service-grpc.yaml
+      sed -i s@%IMAGE%@${IMAGE}@g service-grpc.yaml
+    id: REPLACE_YAML_VALUE_GRPC
+    waitFor: [ "-" ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "services",
+        "replace",
+        "service-http.yaml",
+        "--region",
+        "${_REGION}",
+      ]
+    id: DEPLOY_CONTAINER_GRPC
+    waitFor:
+      - REPLACE_YAML_VALUE_GRPC
       - PUSH_IMAGE
 
 # Deploy to Cloud Run
 substitutions:
-  _APP_NAME: ${REPO_NAME}
+  _APP_NAME_HTTP: ${REPO_NAME}-http
+  _APP_NAME_GRPC: ${REPO_NAME}-grpc
   _REGION: ${LOCATION}
   _IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/project-service:${SHORT_SHA}
 
