@@ -2,19 +2,19 @@ steps:
   # Docker Build
   - name: 'gcr.io/cloud-builders/docker'
     args: [ 'build', '-t',
-            '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/customer-service:$SHORT_SHA', '.' ]
+            '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/project-service:$SHORT_SHA', '.' ]
     id: BUILD_IMAGE
 
   # Docker push to Google Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: [ 'push', '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/customer-service:$SHORT_SHA' ]
+    args: [ 'push', '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/project-service:$SHORT_SHA' ]
     id: PUSH_IMAGE
     waitFor: [ BUILD_IMAGE ]
 
   # Replace YAML values using envsubst for HTTP CONTAINER
   - name: "alpine"
     env:
-      - "APP_NAME=${_APP_NAME}-http"
+      - "APP_NAME=${_APP_NAME_HTTP}"
       - "IMAGE=${_IMAGE}"
       - "PROTO=http"
     script: |
@@ -43,7 +43,7 @@ steps:
   # Replace YAML values using envsubst for GRPC CONTAINER
   - name: "alpine"
     env:
-      - "APP_NAME=${_APP_NAME}-grpc"
+      - "APP_NAME=${_APP_NAME_GRPC}"
       - "IMAGE=${_IMAGE}"
       - "PROTO=grpc"
     script: |
@@ -71,9 +71,10 @@ steps:
 
 # Deploy to Cloud Run
 substitutions:
-  _APP_NAME: ${REPO_NAME}
+  _APP_NAME_HTTP: ${REPO_NAME}-http
+  _APP_NAME_GRPC: ${REPO_NAME}-grpc
   _REGION: ${LOCATION}
-  _IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/customer-service:${SHORT_SHA}
+  _IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/project-service:${SHORT_SHA}
 
 # Store images in Google Artifact Registry
 images:
