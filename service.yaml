@@ -23,18 +23,18 @@ spec:
       timeoutSeconds: 300
       serviceAccountName: 244108678816-compute@developer.gserviceaccount.com
       containers:
-        - name: project-service
+        - name: project-service-http
           image: "%IMAGE%"
           ports:
             - name: http1
-              containerPort: 8080
+              containerPort: 80
           env:
             - name: GCP_PROJECT_ID
               value: verifire-60d1b
             - name: MODE
               value: dev
             - name: PROTO
-              value: "%PROTO%"
+              value: http
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /app/secret/verifire-60d1b-3a7b22c9842d
             - name: PRJCT_SUBS_SERVICE_RPC_ADDR
@@ -57,7 +57,42 @@ spec:
             periodSeconds: 240
             failureThreshold: 1
             tcpSocket:
-              port: 8080
+              port: 80
+        - name: project-service-grpc
+          image: "%IMAGE%"
+          ports:
+            - name: grpc1
+              containerPort: 50051
+          env:
+            - name: GCP_PROJECT_ID
+              value: verifire-60d1b
+            - name: MODE
+              value: dev
+            - name: PROTO
+              value: grpc
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/secret/verifire-60d1b-3a7b22c9842d
+            - name: PRJCT_SUBS_SERVICE_RPC_ADDR
+              value: subscription-service:5001
+            - name: PRJCT_CHECKMAIL_TOPIC_ID
+              value: checkmail-topic
+            - name: PRJCT_CHECKMAIL_SUB_NAME
+              value: checkmail-sub
+            - name: PRJCT_CHECKMAIL_CREATE_ACCESS_ENDPOINT
+              value: http://checkmail-service:8080/v1/access
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          volumeMounts:
+            - name: verifire-60d1b-3a7b22c9842d
+              mountPath: /app/secret
+          startupProbe:
+            timeoutSeconds: 240
+            periodSeconds: 240
+            failureThreshold: 1
+            tcpSocket:
+              port: 50051
       volumes:
         - name: verifire-60d1b-3a7b22c9842d
           secret:

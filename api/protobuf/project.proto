@@ -22,4 +22,3 @@ message CreateDefaultProjectResponse {
 message DeleteProjectRequest {
   string project_uuid = 1;
 }
-
