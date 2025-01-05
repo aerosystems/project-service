@@ -1,0 +1,81 @@
+steps:
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t',
+            '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/project-service:$SHORT_SHA', '.' ]
+    id: BUILD_IMAGE
+
+  # Docker push to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/project-service:$SHORT_SHA' ]
+    id: PUSH_IMAGE
+    waitFor: [ BUILD_IMAGE ]
+
+  # Replace YAML values using envsubst for HTTP service
+  - name: "alpine"
+    env:
+      - "APP_NAME=${_APP_NAME_HTTP}"
+      - "IMAGE=${_IMAGE}"
+    script: |
+      sed -i s@%APP_NAME%@${APP_NAME}@g service-http.yaml
+      sed -i s@%IMAGE%@${IMAGE}@g service-http.yaml
+    id: REPLACE_YAML_VALUE_HTTP
+    waitFor: [ "-" ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "services",
+        "replace",
+        "service-http.yaml",
+        "--region",
+        "${_REGION}",
+      ]
+    id: DEPLOY_CONTAINER_HTTP
+    waitFor:
+      - REPLACE_YAML_VALUE_HTTP
+      - PUSH_IMAGE
+
+  # Replace YAML values using envsubst for gRPC service
+  - name: "alpine"
+    env:
+      - "APP_NAME=${_APP_NAME_GRPC}"
+      - "IMAGE=${_IMAGE}"
+    script: |
+      sed -i s@%APP_NAME%@${APP_NAME}@g service-grpc.yaml
+      sed -i s@%IMAGE%@${IMAGE}@g service-grpc.yaml
+    id: REPLACE_YAML_VALUE_GRPC
+    waitFor: [ "-" ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "services",
+        "replace",
+        "service-grpc.yaml",
+        "--region",
+        "${_REGION}",
+      ]
+    id: DEPLOY_CONTAINER_GRPC
+    waitFor:
+      - REPLACE_YAML_VALUE_GRPC
+      - PUSH_IMAGE
+
+# Deploy to Cloud Run
+substitutions:
+  _APP_NAME_HTTP: ${REPO_NAME}-http
+  _APP_NAME_GRPC: ${REPO_NAME}-grpc
+  _REGION: ${LOCATION}
+  _IMAGE: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/project-service:${SHORT_SHA}
+
+# Store images in Google Artifact Registry
+images:
+  - ${_IMAGE}
+
+# Log only to Google Cloud Logging
+options:
+  logging: CLOUD_LOGGING_ONLY

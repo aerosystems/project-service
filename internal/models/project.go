@@ -1,24 +1,34 @@
 package models
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"github.com/google/uuid"
+	"math/rand"
+	"strconv"
 	"time"
 )
 
 type Project struct {
-	Id        int       `json:"id" gorm:"primaryKey;unique;autoIncrement" example:"66"`
-	UserUuid  uuid.UUID `json:"userId" gorm:"index:idx_user_id_name,unique" example:"666"`
-	Name      string    `json:"name" gorm:"index:idx_user_id_name,unique" example:"bla-bla-bla.com"`
-	Token     string    `json:"token" example:"38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	Uuid         uuid.UUID
+	CustomerUUID uuid.UUID
+	Name         string
+	Token        string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
-type ProjectRepository interface {
-	GetById(Id int) (*Project, error)
-	GetByToken(token string) (*Project, error)
-	GetByUserUuid(userUuid uuid.UUID) ([]Project, error)
-	Create(project *Project) error
-	Update(project *Project) error
-	Delete(project *Project) error
+func NewProject(customerUuid uuid.UUID, name string) *Project {
+	return &Project{
+		Uuid:         uuid.New(),
+		Token:        generateToken(),
+		CustomerUUID: customerUuid,
+		Name:         name,
+	}
+}
+
+func generateToken() string {
+	rand.Seed(time.Now().Unix())
+	sum := sha256.Sum256([]byte(strconv.Itoa(rand.Int())))
+	return fmt.Sprintf("%x", sum)
 }

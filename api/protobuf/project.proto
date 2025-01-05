@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package project;
+
+option go_package = "/project";
+
+import "google/protobuf/empty.proto";
+
+service ProjectService {
+  rpc CreateDefaultProject(CreateDefaultProjectRequest) returns (CreateDefaultProjectResponse);
+  rpc DeleteProject(DeleteProjectRequest) returns (google.protobuf.Empty);
+}
+
+message CreateDefaultProjectRequest {
+  string customer_uuid = 1;
+}
+
+message CreateDefaultProjectResponse {
+  string project_uuid = 1;
+}
+
+message DeleteProjectRequest {
+  string project_uuid = 1;
+}
