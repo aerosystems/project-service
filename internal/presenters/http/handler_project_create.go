@@ -1,4 +1,4 @@
-package handlers
+package HTTPServer
 
 import (
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"

@@ -7,18 +7,18 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type Handler struct {
+type ProjectHandler struct {
 	projectUsecase ProjectUsecase
 	project.UnimplementedProjectServiceServer
 }
 
-func NewGRPCHandler(projectUsecase ProjectUsecase) *Handler {
-	return &Handler{
+func NewProjectHandler(projectUsecase ProjectUsecase) *ProjectHandler {
+	return &ProjectHandler{
 		projectUsecase: projectUsecase,
 	}
 }
 
-func (h Handler) CreateDefaultProject(_ context.Context, req *project.CreateDefaultProjectRequest) (*project.CreateDefaultProjectResponse, error) {
+func (h ProjectHandler) CreateDefaultProject(_ context.Context, req *project.CreateDefaultProjectRequest) (*project.CreateDefaultProjectResponse, error) {
 	defaultProject, err := h.projectUsecase.CreateDefaultProject(uuid.MustParse(req.CustomerUuid))
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (h Handler) CreateDefaultProject(_ context.Context, req *project.CreateDefa
 	}, nil
 }
 
-func (h Handler) DeleteProject(_ context.Context, req *project.DeleteProjectRequest) (*emptypb.Empty, error) {
+func (h ProjectHandler) DeleteProject(_ context.Context, req *project.DeleteProjectRequest) (*emptypb.Empty, error) {
 	err := h.projectUsecase.DeleteProject(req.ProjectUuid)
 	if err != nil {
 		return nil, err

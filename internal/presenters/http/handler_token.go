@@ -1,9 +1,21 @@
-package handlers
+package HTTPServer
 
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
+
+type TokenHandler struct {
+	*BaseHandler
+	tokenUsecase TokenUsecase
+}
+
+func NewTokenHandler(baseHandler *BaseHandler, tokenUsecase TokenUsecase) *TokenHandler {
+	return &TokenHandler{
+		BaseHandler:  baseHandler,
+		tokenUsecase: tokenUsecase,
+	}
+}
 
 // ValidateToken godoc
 // @Summary validate token

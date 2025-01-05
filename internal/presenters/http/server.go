@@ -1,9 +1,7 @@
-package HttpServer
+package HTTPServer
 
 import (
 	"fmt"
-	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
-	"github.com/aerosystems/project-service/internal/presenters/http/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -12,18 +10,18 @@ type Server struct {
 	port                   int
 	log                    *logrus.Logger
 	echo                   *echo.Echo
-	firebaseAuthMiddleware *middleware.FirebaseAuth
-	projectHandler         *handlers.ProjectHandler
-	tokenHandler           *handlers.TokenHandler
+	firebaseAuthMiddleware *FirebaseAuth
+	projectHandler         *ProjectHandler
+	tokenHandler           *TokenHandler
 }
 
 func NewServer(
 	port int,
 	log *logrus.Logger,
 	errorHandler *echo.HTTPErrorHandler,
-	firebaseAuthMiddleware *middleware.FirebaseAuth,
-	projectHandler *handlers.ProjectHandler,
-	tokenHandler *handlers.TokenHandler,
+	firebaseAuthMiddleware *FirebaseAuth,
+	projectHandler *ProjectHandler,
+	tokenHandler *TokenHandler,
 ) *Server {
 	server := &Server{
 		port:                   port,

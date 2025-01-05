@@ -1,73 +1,47 @@
-run:
-  timeout: 3m
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
+    - asciicheck
+    - bodyclose
+    - dogsled
+    - exhaustive
+    - exportloopref
+    - gocognit
+    - goconst
+    - gofmt
+    - goheader
+    - goimports
+    - gosec
+    - misspell
+    - nakedret
+    - nestif
+    - noctx
+    - rowserrcheck
+    - sqlclosecheck
+    - unconvert
+    - unparam
+    - whitespace
 
 issues:
-  exclude-dirs:
-    - ^docs/
-    - ^data/
-    - ^logs/
-  exclude-use-default: false
-  max-per-linter: 0
-  max-same-issues: 0
-  exclude: []
+  exclude:
+    - "composite literal uses unkeyed fields"
   exclude-rules:
-    - path: (.+)_test.go
+    - path: _test\.go
       linters:
-        - goconst
-        - funlen
-        - godot
-  exclude-files:
-    - "cmd/app/wire_gen.go"
-    - "cmd/cli/wire_gen.go"
-    - "docs/docs.go"
-
-linters-settings:
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment
-  golint:
-    min-confidence: 0
-  gocyclo:
-    min-complexity: 15
-  goconst:
-    min-len: 5
-    min-occurrences: 4
-  misspell:
-    locale: US
-  funlen:
-    lines: -1
-    statements: 50
-  godox:
-    keywords:
-      - FIXME
-  gofumpt:
-    extra-rules: true
-  gofmt:
-    simplify: true
-  nlreturn:
-    max-func-lines: 30
-
-linters:
-  enable-all: true
-  disable:
-    - sqlclosecheck # not relevant (SQL)
-    - rowserrcheck # not relevant (SQL)
-    - cyclop # duplicate of gocyclo
-    - bodyclose # Too many false positives
-    - dupl
-    - testpackage
-    - tparallel
-    - paralleltest
-    - nlreturn
-    - wsl
-    - exhaustive
-    - exhaustruct
-    - err113
-    - wrapcheck
-    - noctx
-    - lll
-    - forbidigo
-    - varnamelen
-    - depguard
-    - exportloopref
+        - gosec
+        - noctx
+        - unparam
+        - bodyclose
+    - path: fixtures.go
+      linters:
+        - gosec

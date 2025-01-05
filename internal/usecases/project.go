@@ -20,11 +20,9 @@ type ProjectUsecase struct {
 	strategy               Strategy
 }
 
-func NewProjectUsecase(projectRepo ProjectRepository, subsRPC SubsRepository, checkmailEventsAdapter CheckmailEventsAdapter) *ProjectUsecase {
+func NewProjectUsecase(projectRepo ProjectRepository) *ProjectUsecase {
 	return &ProjectUsecase{
-		projectRepo:            projectRepo,
-		subsRepo:               subsRPC,
-		checkmailEventsAdapter: checkmailEventsAdapter,
+		projectRepo: projectRepo,
 	}
 }
 
@@ -76,7 +74,7 @@ func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, erro
 	if err != nil {
 		return nil, err
 	}
-	// TODO: if it statement is needed, we should determine strategy before
+	// TODO: if its statement is needed, we should determine strategy before
 	//if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUUID) {
 	//	return nil, errors.New("user is not allowed to access the project")
 	//}

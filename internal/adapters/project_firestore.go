@@ -1,4 +1,4 @@
-package fire
+package adapters
 
 import (
 	"cloud.google.com/go/firestore"

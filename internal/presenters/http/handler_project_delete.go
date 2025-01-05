@@ -1,4 +1,4 @@
-package handlers
+package HTTPServer
 
 import (
 	"github.com/aerosystems/project-service/internal/models"
@@ -6,30 +6,27 @@ import (
 	"net/http"
 )
 
-// GetProject godoc
-// @Summary get project by ProjectId
+// ProjectDelete godoc
+// @Summary delete project by ProjectId
 // @Tags projects
 // @Accept  json
 // @Produce application/json
 // @Param	projectId	path	string	true "ProjectId"
 // @Security BearerAuth
-// @Success 200 {object} Project
-// @Failure 400 {object} echo.HTTPError
+// @Success 204 {object} struct{} "No Content"
 // @Failure 401 {object} echo.HTTPError
 // @Failure 403 {object} echo.HTTPError
 // @Failure 404 {object} echo.HTTPError
-// @Failure 422 {object} echo.HTTPError
 // @Failure 500 {object} echo.HTTPError
-// @Router /v1/projects/{projectUuid} [get]
-func (ph ProjectHandler) GetProject(c echo.Context) error {
+// @Router /v1/projects/{projectUuid} [delete]
+func (ph ProjectHandler) ProjectDelete(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	projectUuid := c.Param("projectUuid")
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return echo.NewHTTPError(http.StatusForbidden, "Getting project is forbidden.")
+		return echo.NewHTTPError(http.StatusForbidden, "Deleting a project is forbidden.")
 	}
-	project, err := ph.projectUsecase.GetProjectByUuid(projectUuid)
-	if err != nil {
+	if err := ph.projectUsecase.DeleteProject(projectUuid); err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, project)
+	return c.JSON(http.StatusNoContent, nil)
 }
