@@ -9,14 +9,13 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/aerosystems/project-service/internal/common/config"
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
+	"github.com/aerosystems/project-service/internal/common/protobuf/project"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/broker"
 	"github.com/aerosystems/project-service/internal/infrastructure/adapters/rpc"
 	"github.com/aerosystems/project-service/internal/infrastructure/repository/fire"
 	GRPCServer "github.com/aerosystems/project-service/internal/presenters/grpc"
 	"github.com/aerosystems/project-service/internal/presenters/http"
 	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
-	"github.com/aerosystems/project-service/internal/presenters/http/handlers/project"
-	"github.com/aerosystems/project-service/internal/presenters/http/handlers/token"
 	"github.com/aerosystems/project-service/internal/presenters/http/middleware"
 	"github.com/aerosystems/project-service/internal/usecases"
 	"github.com/aerosystems/project-service/pkg/firebase"
@@ -37,6 +36,7 @@ func InitApp() *App {
 		wire.Bind(new(handlers.TokenUsecase), new(*usecases.TokenUsecase)),
 		wire.Bind(new(usecases.SubsRepository), new(*RpcRepo.SubsRepo)),
 		wire.Bind(new(usecases.ProjectRepository), new(*fire.ProjectRepo)),
+		wire.Bind(new(project.ProjectServiceServer), new(*GRPCServer.Handler)),
 		ProvideApp,
 		ProvideLogger,
 		ProvideConfig,
@@ -72,12 +72,12 @@ func ProvideConfig() *config.Config {
 	panic(wire.Build(config.NewConfig))
 }
 
-func ProvideHttpServer(cfg *config.Config, log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *project.Handler, tokenHandler *token.Handler) *HttpServer.Server {
+func ProvideHttpServer(cfg *config.Config, log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, firebaseAuthMiddleware *middleware.FirebaseAuth, projectHandler *handlers.ProjectHandler, tokenHandler *handlers.TokenHandler) *HttpServer.Server {
 	return HttpServer.NewServer(cfg.Port, log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
 }
 
-func ProvideGRPCServer(cfg *config.Config, log *logrus.Logger, grpcHandlers *GRPCServer.Handler) *GRPCServer.Server {
-	return GRPCServer.NewGRPCServer(cfg.Port, log, grpcHandlers)
+func ProvideGRPCServer(cfg *config.Config, log *logrus.Logger, grpcHandler project.ProjectServiceServer) *GRPCServer.Server {
+	return GRPCServer.NewGRPCServer(cfg.Port, log, grpcHandler)
 }
 
 func ProvideGRPCHandlers(projectUsecase GRPCServer.ProjectUsecase) *GRPCServer.Handler {
@@ -92,12 +92,12 @@ func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *handlers.BaseHa
 	return handlers.NewBaseHandler(log, cfg.Mode)
 }
 
-func ProvideProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *project.Handler {
-	panic(wire.Build(project.NewProjectHandler))
+func ProvideProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *handlers.ProjectHandler {
+	panic(wire.Build(handlers.NewProjectHandler))
 }
 
-func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handlers.TokenUsecase) *token.Handler {
-	panic(wire.Build(token.NewTokenHandler))
+func ProvideTokenHandler(baseHandler *handlers.BaseHandler, tokenUsecase handlers.TokenUsecase) *handlers.TokenHandler {
+	panic(wire.Build(handlers.NewTokenHandler))
 }
 
 func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subsRepo usecases.SubsRepository, checkmailEventsAdapter usecases.CheckmailEventsAdapter) *usecases.ProjectUsecase {

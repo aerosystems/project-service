@@ -1,4 +1,4 @@
-package project
+package handlers
 
 import (
 	"encoding/json"
@@ -40,7 +40,7 @@ type CreateProjectEvent struct {
 // @Failure 409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /project/init [post]
-func (ph Handler) InitProject(c echo.Context) error {
+func (ph ProjectHandler) InitProject(c echo.Context) error {
 	var req InitProjectRequest
 	if err := c.Bind(&req); err != nil {
 		return CustomErrors.ErrInvalidRequestBody

@@ -1,18 +1,17 @@
-package project
+package handlers
 
 import (
 	"github.com/aerosystems/project-service/internal/models"
-	"github.com/aerosystems/project-service/internal/presenters/http/handlers"
 	"github.com/google/uuid"
 )
 
-type Handler struct {
-	*handlers.BaseHandler
-	projectUsecase handlers.ProjectUsecase
+type ProjectHandler struct {
+	*BaseHandler
+	projectUsecase ProjectUsecase
 }
 
-func NewProjectHandler(baseHandler *handlers.BaseHandler, projectUsecase handlers.ProjectUsecase) *Handler {
-	return &Handler{
+func NewProjectHandler(baseHandler *BaseHandler, projectUsecase ProjectUsecase) *ProjectHandler {
+	return &ProjectHandler{
 		BaseHandler:    baseHandler,
 		projectUsecase: projectUsecase,
 	}

@@ -1,4 +1,4 @@
-package project
+package handlers
 
 import (
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
@@ -27,7 +27,7 @@ type CreateProjectRequest struct {
 // @Failure 422 {object} echo.HTTPError
 // @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects [post]
-func (ph Handler) ProjectCreate(c echo.Context) error {
+func (ph ProjectHandler) ProjectCreate(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	var requestPayload CreateProjectRequest
 	if err := c.Bind(&requestPayload); err != nil {

@@ -2,6 +2,7 @@ package GRPCServer
 
 import (
 	"fmt"
+	"github.com/aerosystems/project-service/internal/common/protobuf/project"
 	"net"
 
 	grpclogrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
@@ -18,7 +19,7 @@ type Server struct {
 func NewGRPCServer(
 	port int,
 	log *logrus.Logger,
-	grpcHandlers ProjectServiceServer,
+	grpcHandlers project.ProjectServiceServer,
 ) *Server {
 	logrusEntry := logrus.NewEntry(log)
 	grpcServer := grpc.NewServer(
@@ -31,7 +32,7 @@ func NewGRPCServer(
 			grpclogrus.StreamServerInterceptor(logrusEntry),
 		),
 	)
-	RegisterProjectServiceServer(grpcServer, grpcHandlers)
+	project.RegisterProjectServiceServer(grpcServer, grpcHandlers)
 	return &Server{
 		addr:       fmt.Sprintf(":%d", port),
 		grpcServer: grpcServer,

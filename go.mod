@@ -19,7 +19,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	golang.org/x/sync v0.10.0
 	google.golang.org/api v0.167.0
-	google.golang.org/grpc v1.69.2
+	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.36.1
 )
 

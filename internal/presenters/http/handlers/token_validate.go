@@ -1,4 +1,4 @@
-package token
+package handlers
 
 import (
 	"github.com/labstack/echo/v4"
@@ -14,7 +14,7 @@ import (
 // @Success 204 {object} struct{} "No Content"
 // @Failure 401 {object} echo.HTTPError
 // @Router /v1/token/validate [get]
-func (th Handler) ValidateToken(c echo.Context) error {
+func (th TokenHandler) ValidateToken(c echo.Context) error {
 	token := c.Request().Header.Get("X-Api-Key")
 	if !th.tokenUsecase.IsProjectExistByToken(token) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "could not get Project by Token")

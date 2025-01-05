@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package GRPCServer;
+package project;
 
-option go_package = ".";
+option go_package = "/project";
 
 import "google/protobuf/empty.proto";
 

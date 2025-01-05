@@ -4,7 +4,7 @@
 // - protoc             v5.28.3
 // source: project.proto
 
-package GRPCServer
+package project
 
 import (
 	context "context"
@@ -17,11 +17,11 @@ import (
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
 // Requires gRPC-Go v1.64.0 or later.
-const _ = grpc.SupportPackageIsVersion8
+const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProjectService_CreateDefaultProject_FullMethodName = "/GRPCServer.ProjectService/CreateDefaultProject"
-	ProjectService_DeleteProject_FullMethodName        = "/GRPCServer.ProjectService/DeleteProject"
+	ProjectService_CreateDefaultProject_FullMethodName = "/project.ProjectService/CreateDefaultProject"
+	ProjectService_DeleteProject_FullMethodName        = "/project.ProjectService/DeleteProject"
 )
 
 // ProjectServiceClient is the client API for ProjectService service.
@@ -143,7 +143,7 @@ func _ProjectService_DeleteProject_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ProjectService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "GRPCServer.ProjectService",
+	ServiceName: "project.ProjectService",
 	HandlerType: (*ProjectServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -1,4 +1,4 @@
-package project
+package handlers
 
 import (
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
@@ -20,7 +20,7 @@ import (
 // @Failure 404 {object} echo.HTTPError
 // @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects [get]
-func (ph Handler) GetProjectList(c echo.Context) (err error) {
+func (ph ProjectHandler) GetProjectList(c echo.Context) (err error) {
 	userClaims, err := middleware.GetUserClaimsFromContext(c.Request().Context())
 	if err != nil {
 		return err

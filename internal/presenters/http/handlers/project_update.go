@@ -1,4 +1,4 @@
-package project
+package handlers
 
 import (
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
@@ -28,7 +28,7 @@ type UpdateProjectRequest struct {
 // @Failure 422 {object} echo.HTTPError
 // @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects/{projectUuid} [patch]
-func (ph Handler) UpdateProject(c echo.Context) error {
+func (ph ProjectHandler) UpdateProject(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	projectUuid := c.Param("projectId")
 	var requestPayload UpdateProjectRequest

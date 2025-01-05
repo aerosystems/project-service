@@ -1,4 +1,4 @@
-package project
+package handlers
 
 import (
 	"github.com/aerosystems/project-service/internal/models"
@@ -19,7 +19,7 @@ import (
 // @Failure 404 {object} echo.HTTPError
 // @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects/{projectUuid} [delete]
-func (ph Handler) ProjectDelete(c echo.Context) error {
+func (ph ProjectHandler) ProjectDelete(c echo.Context) error {
 	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
 	projectUuid := c.Param("projectUuid")
 	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {

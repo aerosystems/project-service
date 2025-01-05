@@ -27,7 +27,7 @@ spec:
           image: "%IMAGE%"
           ports:
             - name: http1
-              containerPort: 80
+              containerPort: 8080
           env:
             - name: GCP_PROJECT_ID
               value: verifire-60d1b
@@ -57,7 +57,7 @@ spec:
             periodSeconds: 240
             failureThreshold: 1
             tcpSocket:
-              port: 80
+              port: 8080
       volumes:
         - name: verifire-60d1b-3a7b22c9842d
           secret:

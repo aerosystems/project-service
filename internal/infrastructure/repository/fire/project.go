@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-const (
-	defaultTimeout = 2 * time.Second
-)
-
 type ProjectRepo struct {
 	client *firestore.Client
 }
@@ -26,12 +22,12 @@ func NewProjectRepo(client *firestore.Client) *ProjectRepo {
 }
 
 type Project struct {
-	Uuid         string    `FirestoreRepo:"uuid"`
-	CustomerUuid string    `FirestoreRepo:"customer_uuid"`
-	Name         string    `FirestoreRepo:"name"`
-	Token        string    `FirestoreRepo:"token"`
-	CreatedAt    time.Time `FirestoreRepo:"created_at"`
-	UpdatedAt    time.Time `FirestoreRepo:"updated_at"`
+	Uuid         string    `firestore:"uuid"`
+	CustomerUuid string    `firestore:"customer_uuid"`
+	Name         string    `firestore:"name"`
+	Token        string    `firestore:"token"`
+	CreatedAt    time.Time `firestore:"created_at"`
+	UpdatedAt    time.Time `firestore:"updated_at"`
 }
 
 func (p *Project) ToModel() *models.Project {
@@ -73,10 +69,8 @@ func ProjectListToModelList(projects []Project) []models.Project {
 }
 
 func (r *ProjectRepo) GetByUuid(ctx context.Context, uuid uuid.UUID) (*models.Project, error) {
-	c, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 	docRef := r.client.Collection("projects").Doc(uuid.String())
-	doc, err := docRef.Get(c)
+	doc, err := docRef.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +85,7 @@ func (r *ProjectRepo) GetByUuid(ctx context.Context, uuid uuid.UUID) (*models.Pr
 }
 
 func (r *ProjectRepo) GetByToken(ctx context.Context, token string) (*models.Project, error) {
-	c, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
-	iter := r.client.Collection("projects").Where("token", "==", token).Limit(1).Documents(c)
+	iter := r.client.Collection("projects").Where("token", "==", token).Limit(1).Documents(ctx)
 	defer iter.Stop()
 
 	doc, err := iter.Next()
@@ -113,9 +105,7 @@ func (r *ProjectRepo) GetByToken(ctx context.Context, token string) (*models.Pro
 }
 
 func (r *ProjectRepo) GetByCustomerUuidAndName(ctx context.Context, customerUuid uuid.UUID, name string) (*models.Project, error) {
-	c, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
-	iter := r.client.Collection("projects").Where("customer_uuid", "==", customerUuid.String()).Where("name", "==", name).Limit(1).Documents(c)
+	iter := r.client.Collection("projects").Where("customer_uuid", "==", customerUuid.String()).Where("name", "==", name).Limit(1).Documents(ctx)
 	defer iter.Stop()
 
 	doc, err := iter.Next()
@@ -127,7 +117,7 @@ func (r *ProjectRepo) GetByCustomerUuidAndName(ctx context.Context, customerUuid
 	}
 
 	var project Project
-	if err := doc.DataTo(&project); err != nil {
+	if err = doc.DataTo(&project); err != nil {
 		return nil, err
 	}
 
@@ -135,10 +125,8 @@ func (r *ProjectRepo) GetByCustomerUuidAndName(ctx context.Context, customerUuid
 }
 
 func (r *ProjectRepo) GetByCustomerUuid(ctx context.Context, customerUuid uuid.UUID) ([]models.Project, error) {
-	c, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 	var fireProjects []Project
-	iter := r.client.Collection("projects").Where("customer_uuid", "==", customerUuid.String()).Documents(c)
+	iter := r.client.Collection("projects").Where("customer_uuid", "==", customerUuid.String()).Documents(ctx)
 	defer iter.Stop()
 
 	for {
@@ -160,24 +148,17 @@ func (r *ProjectRepo) GetByCustomerUuid(ctx context.Context, customerUuid uuid.U
 }
 
 func (r *ProjectRepo) Create(ctx context.Context, project *models.Project) error {
-	c, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
-	fireProject := ModelToProject(project)
-	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Create(c, fireProject)
+	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Set(ctx, ModelToProject(project))
 	return err
 }
 
 func (r *ProjectRepo) Update(ctx context.Context, project *models.Project) error {
-	c, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 	fireProject := ModelToProject(project)
-	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Set(c, fireProject)
+	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Set(ctx, fireProject)
 	return err
 }
 
 func (r *ProjectRepo) Delete(ctx context.Context, project *models.Project) error {
-	c, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
-	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Delete(c)
+	_, err := r.client.Collection("projects").Doc(project.Uuid.String()).Delete(ctx)
 	return err
 }
