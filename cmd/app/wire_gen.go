@@ -17,9 +17,8 @@ import (
 	"github.com/aerosystems/project-service/internal/presenters/grpc"
 	"github.com/aerosystems/project-service/internal/presenters/http"
 	"github.com/aerosystems/project-service/internal/usecases"
-	"github.com/aerosystems/project-service/pkg/firebase"
+	"github.com/aerosystems/project-service/pkg/gcp"
 	"github.com/aerosystems/project-service/pkg/logger"
-	"github.com/aerosystems/project-service/pkg/pubsub"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -125,19 +124,11 @@ func ProvideFirebaseAuthMiddleware(client *auth.Client) *HTTPServer.FirebaseAuth
 }
 
 func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
-	app, err := firebaseApp.NewApp(cfg.GcpProjectId, cfg.GoogleApplicationCredentials)
+	app, err := gcp.NewFirebaseApp(cfg.GcpProjectId, cfg.GoogleApplicationCredentials)
 	if err != nil {
 		panic(err)
 	}
 	return app.Client
-}
-
-func ProvidePubSubClient(cfg *config.Config) *PubSub.Client {
-	client, err := PubSub.NewClientWithAuth(cfg.GoogleApplicationCredentials)
-	if err != nil {
-		panic(err)
-	}
-	return client
 }
 
 func ProvideErrorHandler(cfg *config.Config) *echo.HTTPErrorHandler {

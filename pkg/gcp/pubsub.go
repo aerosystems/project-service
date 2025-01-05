@@ -1,4 +1,4 @@
-package PubSub
+package gcp
 
 import (
 	"cloud.google.com/go/pubsub"
@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-type Client struct {
+type PubSubClient struct {
 	Client *pubsub.Client
 	Ctx    context.Context
 }
@@ -27,21 +27,21 @@ type Config struct {
 	UniverseDomain          string `json:"universe_domain"`
 }
 
-func NewClient(projectId string) (*Client, error) {
+func NewPubSubClient(projectId string) (*PubSubClient, error) {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectId)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{
+	return &PubSubClient{
 		Client: client,
 		Ctx:    ctx,
 	}, nil
 
 }
 
-func NewClientWithAuth(credentialsPath string) (*Client, error) {
+func NewPubSubClientWithAuth(credentialsPath string) (*PubSubClient, error) {
 	configData, err := os.ReadFile(credentialsPath)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func NewClientWithAuth(credentialsPath string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{
+	return &PubSubClient{
 		Client: client,
 		Ctx:    ctx,
 	}, nil
