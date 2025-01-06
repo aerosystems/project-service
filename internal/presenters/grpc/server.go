@@ -12,6 +12,7 @@ import (
 )
 
 type Server struct {
+	log        *logrus.Logger
 	addr       string
 	grpcServer *grpc.Server
 }
@@ -34,6 +35,7 @@ func NewGRPCServer(
 	)
 	project.RegisterProjectServiceServer(grpcServer, grpcHandlers)
 	return &Server{
+		log:        log,
 		addr:       fmt.Sprintf(":%d", port),
 		grpcServer: grpcServer,
 	}
@@ -44,5 +46,6 @@ func (s *Server) Run() error {
 	if err != nil {
 		return fmt.Errorf("failed to listen on %s: %w", s.addr, err)
 	}
+	s.log.Infof("gRPC server running on %s", s.addr)
 	return s.grpcServer.Serve(listen)
 }
