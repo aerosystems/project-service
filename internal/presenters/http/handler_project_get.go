@@ -49,21 +49,21 @@ func (ph ProjectHandler) GetProject(c echo.Context) error {
 // @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects [get]
 func (ph ProjectHandler) GetProjectList(c echo.Context) (err error) {
-	userClaims, err := GetUserClaimsFromContext(c.Request().Context())
+	user, err := GetUserFromContext(c.Request().Context())
 	if err != nil {
 		return err
 	}
-	filterUserUuid := userClaims.Uuid
+	var filteredUserUUID uuid.UUID
 	if len(c.QueryParam("userUuid")) != 0 {
-		filterUserUuid, err = uuid.Parse(c.QueryParam("userUuid"))
+		filteredUserUUID, err = uuid.Parse(c.QueryParam("userUuid"))
 		if err != nil {
 			return CustomErrors.ErrProjectUuidInvalid
 		}
 	}
-	if err := ph.projectUsecase.DetermineStrategy(userClaims.Uuid.String(), userClaims.Role.String()); err != nil {
+	if err = ph.projectUsecase.DetermineStrategy(user.UUID.String(), user.Role.String()); err != nil {
 		return echo.NewHTTPError(http.StatusForbidden, "Getting projects is forbidden")
 	}
-	projectList, err := ph.projectUsecase.GetProjectListByCustomerUuid(userClaims.Uuid, filterUserUuid)
+	projectList, err := ph.projectUsecase.GetProjectListByCustomerUuid(user.UUID, filteredUserUUID)
 	if err != nil {
 		return err
 	}

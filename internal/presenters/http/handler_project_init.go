@@ -2,7 +2,6 @@ package HTTPServer
 
 import (
 	"encoding/json"
-	"fmt"
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -51,7 +50,6 @@ func (ph ProjectHandler) InitProject(c echo.Context) error {
 	}
 	project, err := ph.projectUsecase.InitProject(event.CustomerUuid, event.SubscriptionType, event.AccessTime)
 	if err != nil {
-		fmt.Printf("Error: %v\n. Type: %T\n", err, err)
 		return err
 	}
 

@@ -2,7 +2,6 @@ package HTTPServer
 
 import (
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
-	"github.com/aerosystems/project-service/internal/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -29,13 +28,16 @@ type UpdateProjectRequest struct {
 // @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects/{projectUuid} [patch]
 func (ph ProjectHandler) UpdateProject(c echo.Context) error {
-	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
+	user, err := GetUserFromContext(c.Request().Context())
+	if err != nil {
+		return err
+	}
 	projectUuid := c.Param("projectId")
 	var requestPayload UpdateProjectRequest
 	if err := c.Bind(&requestPayload); err != nil {
 		return CustomErrors.ErrInvalidRequestBody
 	}
-	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
+	if err := ph.projectUsecase.DetermineStrategy(user.UUID.String(), user.Role.String()); err != nil {
 		return echo.NewHTTPError(http.StatusForbidden, "Updating a project is forbidden.")
 	}
 	project, err := ph.projectUsecase.UpdateProject(projectUuid, requestPayload.Name)

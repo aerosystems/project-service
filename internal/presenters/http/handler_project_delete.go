@@ -1,7 +1,6 @@
 package HTTPServer
 
 import (
-	"github.com/aerosystems/project-service/internal/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -20,9 +19,12 @@ import (
 // @Failure 500 {object} echo.HTTPError
 // @Router /v1/projects/{projectUuid} [delete]
 func (ph ProjectHandler) ProjectDelete(c echo.Context) error {
-	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
+	user, err := GetUserFromContext(c.Request().Context())
+	if err != nil {
+		return err
+	}
 	projectUuid := c.Param("projectUuid")
-	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
+	if err := ph.projectUsecase.DetermineStrategy(user.UUID.String(), user.Role.String()); err != nil {
 		return echo.NewHTTPError(http.StatusForbidden, "Deleting a project is forbidden.")
 	}
 	if err := ph.projectUsecase.DeleteProject(projectUuid); err != nil {
