@@ -6,7 +6,7 @@ package main
 import (
 	"cloud.google.com/go/firestore"
 	"context"
-	"firebase.google.com/go/auth"
+	"firebase.google.com/go/v4/auth"
 	"github.com/aerosystems/project-service/internal/adapters"
 	"github.com/aerosystems/project-service/internal/common/config"
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"

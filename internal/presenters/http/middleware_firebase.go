@@ -3,7 +3,7 @@ package HTTPServer
 import (
 	"context"
 	"errors"
-	"firebase.google.com/go/auth"
+	"firebase.google.com/go/v4/auth"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/go-logrusutil/logrusutil/logctx"
 	"github.com/google/uuid"
