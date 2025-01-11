@@ -5,6 +5,7 @@ import (
 	"errors"
 	"firebase.google.com/go/auth"
 	"github.com/aerosystems/project-service/internal/models"
+	"github.com/go-logrusutil/logrusutil/logctx"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -15,12 +16,14 @@ type ctxKey int
 
 const (
 	userContextKey ctxKey = iota
+
+	errMessageForbidden    = "access denied"
+	errMessageUnauthorized = "invalid token"
 )
 
 type User struct {
-	UUID  uuid.UUID
-	Role  models.Role
-	Email string
+	UUID uuid.UUID
+	Role models.Role
 }
 
 type FirebaseAuth struct {
@@ -37,43 +40,43 @@ func (fa FirebaseAuth) RoleBasedAuth(roles ...models.Role) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
+			logger := logctx.From(ctx)
 			jwt, err := getTokenFromHeader(c.Request())
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
+				logger.Errorf("could not get access token from header: %v", err)
+				return echo.NewHTTPError(http.StatusUnauthorized, errMessageUnauthorized)
 			}
 
 			token, err := fa.client.VerifyIDToken(ctx, jwt)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
+				logger.WithField("token", jwt).Errorf("could not verify access token: %v : %v. JWT: %s", token, err, jwt)
+				return echo.NewHTTPError(http.StatusUnauthorized, errMessageUnauthorized)
 			}
 
 			userUUID, ok := token.Claims["user_uuid"].(string)
 			if !ok {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
+				logger.WithField("token", jwt).Errorf("user_uuid claim not found in access token. JWT: %s", jwt)
+				return echo.NewHTTPError(http.StatusUnauthorized, errMessageUnauthorized)
 			}
 
 			var user User
 			user.UUID, err = uuid.Parse(userUUID)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
+				logger.WithField("token", jwt).Errorf("could not parse user_uuid claim as uuid: %v", err)
+				return echo.NewHTTPError(http.StatusUnauthorized, errMessageUnauthorized)
 			}
 
 			userRole, ok := token.Claims["role"].(string)
 			if !ok {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
+				logger.WithField("token", jwt).Errorf("role claim not found in access token. JWT: %s", jwt)
+				return echo.NewHTTPError(http.StatusForbidden, errMessageForbidden)
 			}
 
 			user.Role = models.RoleFromString(userRole)
 			if !isAccess(roles, user.Role) {
-				return echo.NewHTTPError(http.StatusForbidden, "access denied")
+				logger.WithField("token", jwt).Errorf("user role %s is not allowed to access. JWT: %s", user.Role, jwt)
+				return echo.NewHTTPError(http.StatusForbidden, errMessageForbidden)
 			}
-
-			userEmail, ok := token.Claims["email"].(string)
-			if !ok {
-				return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
-			}
-
-			user.Email = userEmail
 
 			ctx = context.WithValue(ctx, userContextKey, user)
 

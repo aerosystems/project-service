@@ -9,13 +9,13 @@ func (s *Server) setupRoutes() {
 	s.echo.GET("/v1/token/validate", s.tokenHandler.ValidateToken)
 
 	// Private routes OAuth 2.0: check roles [customer, staff]. Auth implemented on API Gateway
-	s.echo.GET("/v1/projects", s.projectHandler.GetProjectList, s.firebaseAuthMiddleware.RoleBased(models.CustomerRole, models.StaffRole))
-	s.echo.GET("/v1/projects/:projectUuid", s.projectHandler.GetProject, s.firebaseAuthMiddleware.RoleBased(models.CustomerRole, models.StaffRole))
+	s.echo.GET("/v1/projects", s.projectHandler.GetProjectList, s.firebaseAuthMiddleware.RoleBasedAuth(models.CustomerRole, models.StaffRole))
+	s.echo.GET("/v1/projects/:projectUuid", s.projectHandler.GetProject, s.firebaseAuthMiddleware.RoleBasedAuth(models.CustomerRole, models.StaffRole))
 
 	// Private routes OAuth 2.0: check roles [staff]. Auth implemented on API Gateway
-	s.echo.POST("/v1/projects", s.projectHandler.ProjectCreate, s.firebaseAuthMiddleware.RoleBased(models.CustomerRole, models.StaffRole))
-	s.echo.PATCH("/v1/projects/:projectUuid", s.projectHandler.UpdateProject, s.firebaseAuthMiddleware.RoleBased(models.StaffRole))
-	s.echo.DELETE("/v1/projects/:projectUuid", s.projectHandler.ProjectDelete, s.firebaseAuthMiddleware.RoleBased(models.StaffRole))
+	s.echo.POST("/v1/projects", s.projectHandler.ProjectCreate, s.firebaseAuthMiddleware.RoleBasedAuth(models.CustomerRole, models.StaffRole))
+	s.echo.PATCH("/v1/projects/:projectUuid", s.projectHandler.UpdateProject, s.firebaseAuthMiddleware.RoleBasedAuth(models.StaffRole))
+	s.echo.DELETE("/v1/projects/:projectUuid", s.projectHandler.ProjectDelete, s.firebaseAuthMiddleware.RoleBasedAuth(models.StaffRole))
 
 	// Temporary public routes
 	s.echo.POST("/v1/projects/init", s.projectHandler.InitProject)
