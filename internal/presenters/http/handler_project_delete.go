@@ -12,11 +12,11 @@ import (
 // @Produce application/json
 // @Param	projectId	path	string	true "ProjectId"
 // @Security BearerAuth
-// @Success 204 {object} struct{} "No Content"
-// @Failure 401 {object} echo.HTTPError
-// @Failure 403 {object} echo.HTTPError
-// @Failure 404 {object} echo.HTTPError
-// @Failure 500 {object} echo.HTTPError
+// @Success 204
+// @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectUuid} [delete]
 func (ph ProjectHandler) ProjectDelete(c echo.Context) error {
 	user, err := GetUserFromContext(c.Request().Context())

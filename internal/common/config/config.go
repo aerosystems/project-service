@@ -20,6 +20,7 @@ type Config struct {
 	CheckmailTopicId              string
 	CheckmailSubName              string
 	CheckmailCreateAccessEndpoint string
+	SubscriptionServiceGRPCAddr   string
 }
 
 func NewConfig() *Config {
@@ -46,5 +47,6 @@ func NewConfig() *Config {
 		CheckmailTopicId:              viper.GetString("PRJCT_CHECKMAIL_TOPIC_ID"),
 		CheckmailSubName:              viper.GetString("PRJCT_CHECKMAIL_SUB_NAME"),
 		CheckmailCreateAccessEndpoint: viper.GetString("PRJCT_CHECKMAIL_CREATE_ACCESS_ENDPOINT"),
+		SubscriptionServiceGRPCAddr:   viper.GetString("PRJCT_SBS_SERVICE_GRPC_ADDR"),
 	}
 }

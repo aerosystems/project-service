@@ -23,8 +23,8 @@ func NewTokenHandler(baseHandler *BaseHandler, tokenUsecase TokenUsecase) *Token
 // @Accept  json
 // @Produce application/json
 // @Security X-Api-Key
-// @Success 204 {object} struct{} "No Content"
-// @Failure 401 {object} echo.HTTPError
+// @Success 204
+// @Failure 401 {object} ErrorResponse
 // @Router /v1/token/validate [get]
 func (th TokenHandler) ValidateToken(c echo.Context) error {
 	token := c.Request().Header.Get("X-Api-Key")

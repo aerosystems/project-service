@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package subscription;
+
+option go_package = "/subscription";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service SubscriptionService {
+  rpc CreateFreeTrialSubscription(CreateFreeTrialSubscriptionRequest) returns (CreateFreeTrialSubscriptionResponse);
+  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse);
+  rpc DeleteSubscription(DeleteSubscriptionRequest) returns (google.protobuf.Empty);
+}
+
+message CreateFreeTrialSubscriptionRequest {
+  string customer_uuid = 1;
+}
+
+message CreateFreeTrialSubscriptionResponse {
+  string subscription_uuid = 1;
+}
+
+message GetSubscriptionRequest {
+  string customer_uuid = 1;
+}
+
+message GetSubscriptionResponse {
+  string subscription_type = 1;
+  google.protobuf.Timestamp access_time = 2;
+}
+
+message DeleteSubscriptionRequest {
+  string subscription_uuid = 1;
+}

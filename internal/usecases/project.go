@@ -15,14 +15,15 @@ const (
 
 type ProjectUsecase struct {
 	projectRepo            ProjectRepository
-	subsRepo               SubsRepository
+	subscriptionAdapter    SubscriptionAdapter
 	checkmailEventsAdapter CheckmailEventsAdapter
 	strategy               Strategy
 }
 
-func NewProjectUsecase(projectRepo ProjectRepository) *ProjectUsecase {
+func NewProjectUsecase(projectRepo ProjectRepository, subscriptionAdapter SubscriptionAdapter) *ProjectUsecase {
 	return &ProjectUsecase{
-		projectRepo: projectRepo,
+		projectRepo:         projectRepo,
+		subscriptionAdapter: subscriptionAdapter,
 	}
 }
 
@@ -35,7 +36,7 @@ func (ps *ProjectUsecase) DetermineStrategy(customerUuidStr string, role string)
 		ps.SetStrategy(&StaffStrategy{customerUuid})
 		return nil
 	}
-	kind, _, err := ps.subsRepo.GetSubscription(customerUuid)
+	kind, _, err := ps.subscriptionAdapter.GetSubscription(context.TODO(), customerUuid)
 	if err != nil {
 		return err
 	}

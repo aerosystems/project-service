@@ -27,8 +27,9 @@ func InitApp() *App {
 		wire.Bind(new(GRPCServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(HTTPServer.ProjectUsecase), new(*usecases.ProjectUsecase)),
 		wire.Bind(new(HTTPServer.TokenUsecase), new(*usecases.TokenUsecase)),
-		wire.Bind(new(usecases.ProjectRepository), new(*adapters.ProjectRepo)),
 		wire.Bind(new(project.ProjectServiceServer), new(*GRPCServer.ProjectHandler)),
+		wire.Bind(new(usecases.ProjectRepository), new(*adapters.ProjectRepo)),
+		wire.Bind(new(usecases.SubscriptionAdapter), new(*adapters.SubscriptionAdapter)),
 		ProvideApp,
 		ProvideLogger,
 		ProvideConfig,
@@ -46,6 +47,7 @@ func InitApp() *App {
 		ProvideErrorHandler,
 		ProvideGRPCHandlers,
 		ProvideGRPCServer,
+		ProvideSubscriptionAdapter,
 	))
 }
 
@@ -89,7 +91,7 @@ func ProvideTokenHandler(baseHandler *HTTPServer.BaseHandler, tokenUsecase HTTPS
 	panic(wire.Build(HTTPServer.NewTokenHandler))
 }
 
-func ProvideProjectUsecase(projectRepo usecases.ProjectRepository) *usecases.ProjectUsecase {
+func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subscriptionAdapter usecases.SubscriptionAdapter) *usecases.ProjectUsecase {
 	panic(wire.Build(usecases.NewProjectUsecase))
 }
 
@@ -125,4 +127,12 @@ func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
 func ProvideErrorHandler(cfg *config.Config) *echo.HTTPErrorHandler {
 	errorHandler := CustomErrors.NewEchoErrorHandler(cfg.Mode)
 	return &errorHandler
+}
+
+func ProvideSubscriptionAdapter(cfg *config.Config) *adapters.SubscriptionAdapter {
+	subscriptionAdapter, err := adapters.NewSubscriptionAdapter(cfg.SubscriptionServiceGRPCAddr)
+	if err != nil {
+		panic(err)
+	}
+	return subscriptionAdapter
 }

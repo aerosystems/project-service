@@ -45,6 +45,8 @@ spec:
               value: checkmail-sub
             - name: PRJCT_CHECKMAIL_CREATE_ACCESS_ENDPOINT
               value: http://checkmail-service:8080/v1/access
+            - name: PRJCT_SBS_SERVICE_GRPC_ADDR
+              value: subscription-service-grpc-244108678816.europe-west1.run.app:443
           resources:
             limits:
               cpu: 1000m

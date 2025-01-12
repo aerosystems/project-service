@@ -1,0 +1,346 @@
+basePath: /
+definitions:
+  HTTPServer.CreateProjectRequest:
+    properties:
+      name:
+        example: bla-bla-bla.com
+        maxLength: 128
+        minLength: 3
+        type: string
+      userUuid:
+        example: "66"
+        type: string
+    required:
+    - name
+    - userUuid
+    type: object
+  HTTPServer.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  HTTPServer.Project:
+    properties:
+      customerUuid:
+        example: "666"
+        type: string
+      name:
+        example: bla-bla-bla.com
+        type: string
+      token:
+        example: 38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f
+        type: string
+      uuid:
+        example: 8893ef16-0030-4f90-a686-b82a6a57ef93
+        type: string
+    type: object
+  HTTPServer.UpdateProjectRequest:
+    properties:
+      name:
+        example: bla-bla-bla.com
+        maxLength: 128
+        minLength: 3
+        type: string
+    required:
+    - name
+    type: object
+host: gw.verifire.dev/project
+info:
+  contact:
+    name: Artem Kostenko
+    url: https://github.com/aerosystems
+  description: A part of microservice infrastructure, who responsible for managing
+    user Projects
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Project Service
+  version: 2.0.0
+paths:
+  /project/init:
+    post:
+      consumes:
+      - application/json
+      description: Init project
+      parameters:
+      - description: Customer UUID
+        in: body
+        name: customerUuid
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/HTTPServer.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+      summary: Init project
+      tags:
+      - project
+  /v1/projects:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: CustomerUUID
+        in: query
+        name: userUuid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/HTTPServer.Project'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get all projects. Result depends on user role
+      tags:
+      - projects
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: raw request body
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/HTTPServer.CreateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/HTTPServer.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: create project
+      tags:
+      - projects
+  /v1/projects/{projectUuid}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ProjectId
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: delete project by ProjectId
+      tags:
+      - projects
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ProjectId
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/HTTPServer.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get project by ProjectId
+      tags:
+      - projects
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ProjectId
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: raw request body
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/HTTPServer.UpdateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/HTTPServer.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update project by ProjectId
+      tags:
+      - projects
+  /v1/token/validate:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/HTTPServer.ErrorResponse'
+      security:
+      - X-Api-Key: []
+      summary: validate token
+      tags:
+      - token
+schemes:
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Should contain Access JWT Token, with the Bearer started
+    in: header
+    name: Authorization
+    type: apiKey
+  X-Api-Key:
+    description: Should contain Token, digits and letters, 64 symbols length
+    in: header
+    name: X-Api-Key
+    type: apiKey
+swagger: "2.0"

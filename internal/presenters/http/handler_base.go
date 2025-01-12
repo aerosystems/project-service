@@ -23,3 +23,7 @@ func NewBaseHandler(
 		validator: validator.Validate{},
 	}
 }
+
+type ErrorResponse struct {
+	Message string `json:"message"`
+}

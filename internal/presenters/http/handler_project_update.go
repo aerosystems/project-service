@@ -19,13 +19,13 @@ type UpdateProjectRequest struct {
 // @Param comment body UpdateProjectRequest true "raw request body"
 // @Security BearerAuth
 // @Success 200 {object} Project
-// @Failure 400 {object} echo.HTTPError
-// @Failure 401 {object} echo.HTTPError
-// @Failure 403 {object} echo.HTTPError
-// @Failure 404 {object} echo.HTTPError
-// @Failure 409 {object} echo.HTTPError
-// @Failure 422 {object} echo.HTTPError
-// @Failure 500 {object} echo.HTTPError
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 422 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectUuid} [patch]
 func (ph ProjectHandler) UpdateProject(c echo.Context) error {
 	user, err := GetUserFromContext(c.Request().Context())

@@ -36,7 +36,8 @@ func InitApp() *App {
 	baseHandler := ProvideBaseHandler(logrusLogger, config)
 	firestoreClient := ProvideFirestoreClient(config)
 	projectRepo := ProvideProjectRepo(firestoreClient)
-	projectUsecase := ProvideProjectUsecase(projectRepo)
+	subscriptionAdapter := ProvideSubscriptionAdapter(config)
+	projectUsecase := ProvideProjectUsecase(projectRepo, subscriptionAdapter)
 	projectHandler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenUsecase := ProvideTokenUsecase(projectRepo)
 	tokenHandler := ProvideTokenHandler(baseHandler, tokenUsecase)
@@ -77,8 +78,8 @@ func ProvideTokenHandler(baseHandler *HTTPServer.BaseHandler, tokenUsecase HTTPS
 	return tokenHandler
 }
 
-func ProvideProjectUsecase(projectRepo usecases.ProjectRepository) *usecases.ProjectUsecase {
-	projectUsecase := usecases.NewProjectUsecase(projectRepo)
+func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subscriptionAdapter usecases.SubscriptionAdapter) *usecases.ProjectUsecase {
+	projectUsecase := usecases.NewProjectUsecase(projectRepo, subscriptionAdapter)
 	return projectUsecase
 }
 
@@ -134,4 +135,12 @@ func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
 func ProvideErrorHandler(cfg *config.Config) *echo.HTTPErrorHandler {
 	errorHandler := CustomErrors.NewEchoErrorHandler(cfg.Mode)
 	return &errorHandler
+}
+
+func ProvideSubscriptionAdapter(cfg *config.Config) *adapters.SubscriptionAdapter {
+	subscriptionAdapter, err := adapters.NewSubscriptionAdapter(cfg.SubscriptionServiceGRPCAddr)
+	if err != nil {
+		panic(err)
+	}
+	return subscriptionAdapter
 }
