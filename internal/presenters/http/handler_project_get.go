@@ -2,7 +2,6 @@ package HTTPServer
 
 import (
 	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
-	"github.com/aerosystems/project-service/internal/models"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -24,15 +23,21 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectUuid} [get]
 func (ph ProjectHandler) GetProject(c echo.Context) error {
-	accessTokenClaims, _ := c.Get("accessTokenClaims").(*models.AccessTokenClaims)
-	projectUuid := c.Param("projectUuid")
-	if err := ph.projectUsecase.DetermineStrategy(accessTokenClaims.UserUuid, accessTokenClaims.UserRole); err != nil {
-		return echo.NewHTTPError(http.StatusForbidden, "Getting project is forbidden.")
-	}
-	project, err := ph.projectUsecase.GetProjectByUuid(projectUuid)
+	user, err := GetUserFromContext(c.Request().Context())
 	if err != nil {
 		return err
 	}
+
+	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+		return err
+	}
+
+	projectUUID := c.Param("projectId")
+	project, err := ph.projectUsecase.GetProjectByUuid(c.Request().Context(), projectUUID)
+	if err != nil {
+		return err
+	}
+
 	return c.JSON(http.StatusOK, project)
 }
 
@@ -60,12 +65,15 @@ func (ph ProjectHandler) GetProjectList(c echo.Context) (err error) {
 			return CustomErrors.ErrProjectUuidInvalid
 		}
 	}
-	if err = ph.projectUsecase.DetermineStrategy(user.UUID.String(), user.Role.String()); err != nil {
-		return echo.NewHTTPError(http.StatusForbidden, "Getting projects is forbidden")
+
+	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+		return err
 	}
-	projectList, err := ph.projectUsecase.GetProjectListByCustomerUuid(user.UUID, filteredUserUUID)
+
+	projectList, err := ph.projectUsecase.GetProjectListByCustomerUuid(c.Request().Context(), user.UUID, filteredUserUUID)
 	if err != nil {
 		return err
 	}
+
 	return c.JSON(http.StatusOK, ModelListToProjectList(projectList))
 }

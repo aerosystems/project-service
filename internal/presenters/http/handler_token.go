@@ -31,5 +31,6 @@ func (th TokenHandler) ValidateToken(c echo.Context) error {
 	if !th.tokenUsecase.IsProjectExistByToken(token) {
 		return echo.NewHTTPError(http.StatusUnauthorized, "could not get Project by Token")
 	}
+
 	return c.JSON(http.StatusNoContent, nil)
 }

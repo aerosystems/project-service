@@ -16,7 +16,4 @@ func (s *Server) setupRoutes() {
 	s.echo.POST("/v1/projects", s.projectHandler.ProjectCreate, s.firebaseAuthMiddleware.RoleBasedAuth(models.CustomerRole, models.StaffRole))
 	s.echo.PATCH("/v1/projects/:projectUuid", s.projectHandler.UpdateProject, s.firebaseAuthMiddleware.RoleBasedAuth(models.StaffRole))
 	s.echo.DELETE("/v1/projects/:projectUuid", s.projectHandler.ProjectDelete, s.firebaseAuthMiddleware.RoleBasedAuth(models.StaffRole))
-
-	// Temporary public routes
-	s.echo.POST("/v1/projects/init", s.projectHandler.InitProject)
 }

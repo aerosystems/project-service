@@ -1,12 +1,12 @@
 package GRPCServer
 
 import (
+	"context"
 	"github.com/aerosystems/project-service/internal/models"
 	"github.com/google/uuid"
 )
 
 type ProjectUsecase interface {
-	DetermineStrategy(customerUuid string, role string) error
-	CreateDefaultProject(customerUuid uuid.UUID) (*models.Project, error)
-	DeleteProject(projectUuid string) error
+	CreateDefaultProject(ctx context.Context, customerUUID uuid.UUID) (*models.Project, error)
+	DeleteProject(ctx context.Context, projectUUID string) error
 }

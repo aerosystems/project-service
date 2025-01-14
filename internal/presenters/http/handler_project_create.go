@@ -32,17 +32,17 @@ func (ph ProjectHandler) ProjectCreate(c echo.Context) error {
 		return err
 	}
 	var requestPayload CreateProjectRequest
-	if err := c.Bind(&requestPayload); err != nil {
+	if err = c.Bind(&requestPayload); err != nil {
 		return CustomErrors.ErrInvalidRequestBody
 	}
-	if err := ph.projectUsecase.DetermineStrategy(user.UUID.String(), user.Role.String()); err != nil {
-		return echo.NewHTTPError(http.StatusForbidden, "creating project is forbidden")
+	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+		return err
 	}
 	userUuid, err := uuid.Parse(requestPayload.UserUuid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "user uuid is incorrect")
 	}
-	project, err := ph.projectUsecase.CreateProject(userUuid, requestPayload.Name)
+	project, err := ph.projectUsecase.CreateProject(c.Request().Context(), userUuid, requestPayload.Name)
 	if err != nil {
 		return err
 	}

@@ -23,11 +23,13 @@ func (ph ProjectHandler) ProjectDelete(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	projectUuid := c.Param("projectUuid")
-	if err := ph.projectUsecase.DetermineStrategy(user.UUID.String(), user.Role.String()); err != nil {
-		return echo.NewHTTPError(http.StatusForbidden, "Deleting a project is forbidden.")
+
+	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+		return err
 	}
-	if err := ph.projectUsecase.DeleteProject(projectUuid); err != nil {
+
+	projectUUID := c.Param("projectUuid")
+	if err = ph.projectUsecase.DeleteProject(c.Request().Context(), projectUUID); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusNoContent, nil)

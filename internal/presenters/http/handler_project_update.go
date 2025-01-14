@@ -32,15 +32,17 @@ func (ph ProjectHandler) UpdateProject(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	projectUuid := c.Param("projectId")
+
 	var requestPayload UpdateProjectRequest
-	if err := c.Bind(&requestPayload); err != nil {
+	if err = c.Bind(&requestPayload); err != nil {
 		return CustomErrors.ErrInvalidRequestBody
 	}
-	if err := ph.projectUsecase.DetermineStrategy(user.UUID.String(), user.Role.String()); err != nil {
-		return echo.NewHTTPError(http.StatusForbidden, "Updating a project is forbidden.")
+	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+		return err
 	}
-	project, err := ph.projectUsecase.UpdateProject(projectUuid, requestPayload.Name)
+
+	projectUUID := c.Param("projectId")
+	project, err := ph.projectUsecase.UpdateProject(c.Request().Context(), projectUUID, requestPayload.Name)
 	if err != nil {
 		return err
 	}

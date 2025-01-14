@@ -19,7 +19,7 @@ func NewProjectHandler(projectUsecase ProjectUsecase) *ProjectHandler {
 }
 
 func (h ProjectHandler) CreateDefaultProject(_ context.Context, req *project.CreateDefaultProjectRequest) (*project.CreateDefaultProjectResponse, error) {
-	defaultProject, err := h.projectUsecase.CreateDefaultProject(uuid.MustParse(req.CustomerUuid))
+	defaultProject, err := h.projectUsecase.CreateDefaultProject(context.TODO(), uuid.MustParse(req.CustomerUuid))
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (h ProjectHandler) CreateDefaultProject(_ context.Context, req *project.Cre
 }
 
 func (h ProjectHandler) DeleteProject(_ context.Context, req *project.DeleteProjectRequest) (*emptypb.Empty, error) {
-	err := h.projectUsecase.DeleteProject(req.ProjectUuid)
+	err := h.projectUsecase.DeleteProject(context.TODO(), req.ProjectUuid)
 	if err != nil {
 		return nil, err
 	}
