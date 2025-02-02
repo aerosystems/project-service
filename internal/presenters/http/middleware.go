@@ -15,19 +15,8 @@ func (s *Server) setupMiddleware() {
 }
 
 func (s *Server) addLog(log *logrus.Logger) {
-	s.echo.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogURI:    true,
-		LogStatus: true,
-		LogValuesFunc: func(c echo.Context, values middleware.RequestLoggerValues) error {
-			log.WithFields(logrus.Fields{
-				"URI":    values.URI,
-				"status": values.Status,
-			}).Info("request")
-
-			return nil
-		},
-	}))
-	s.echo.Use(middleware.Recover())
+	s.echo.Use()
+	s.echo.Use()
 }
 
 func (s *Server) addCORS() {
