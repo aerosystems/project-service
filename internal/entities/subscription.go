@@ -1,4 +1,4 @@
-package models
+package entities
 
 type SubscriptionType struct {
 	slug string

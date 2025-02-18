@@ -3,8 +3,8 @@ package adapters
 import (
 	"context"
 	"crypto/tls"
-	"github.com/aerosystems/project-service/internal/common/protobuf/subscription"
-	"github.com/aerosystems/project-service/internal/models"
+	"github.com/aerosystems/common-service/gen/protobuf/subscription"
+	"github.com/aerosystems/project-service/internal/entities"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -38,13 +38,13 @@ func NewSubscriptionAdapter(address string) (*SubscriptionAdapter, error) {
 	}, nil
 }
 
-func (sa SubscriptionAdapter) GetSubscription(ctx context.Context, customerUUID uuid.UUID) (subscriptionType models.SubscriptionType, accessTime time.Time, err error) {
+func (sa SubscriptionAdapter) GetSubscription(ctx context.Context, customerUUID uuid.UUID) (subscriptionType entities.SubscriptionType, accessTime time.Time, err error) {
 	resp, err := sa.client.GetSubscription(ctx, &subscription.GetSubscriptionRequest{
 		CustomerUuid: customerUUID.String(),
 	})
 	if err != nil {
-		return models.UnknownSubscription, time.Time{}, err
+		return entities.UnknownSubscription, time.Time{}, err
 	}
-	subscriptionType = models.NewSubscriptionType(resp.SubscriptionType)
+	subscriptionType = entities.NewSubscriptionType(resp.SubscriptionType)
 	return subscriptionType, resp.AccessTime.AsTime(), nil
 }

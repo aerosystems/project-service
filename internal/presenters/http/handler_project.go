@@ -1,7 +1,7 @@
 package HTTPServer
 
 import (
-	"github.com/aerosystems/project-service/internal/models"
+	"github.com/aerosystems/project-service/internal/entities"
 	"github.com/google/uuid"
 )
 
@@ -24,8 +24,8 @@ type Project struct {
 	Token        string    `json:"token" example:"38fa45ebb919g5d966122bf9g42a38ceb1e4f6eddf1da70ef00afbdc38197d8f"`
 }
 
-func (p *Project) ToModel() *models.Project {
-	return &models.Project{
+func (p *Project) ToModel() *entities.Project {
+	return &entities.Project{
 		Uuid:         p.Uuid,
 		CustomerUUID: p.CustomerUuid,
 		Name:         p.Name,
@@ -33,7 +33,7 @@ func (p *Project) ToModel() *models.Project {
 	}
 }
 
-func ModelToProject(project *models.Project) *Project {
+func ModelToProject(project *entities.Project) *Project {
 	return &Project{
 		Uuid:         project.Uuid,
 		CustomerUuid: project.CustomerUUID,
@@ -42,7 +42,7 @@ func ModelToProject(project *models.Project) *Project {
 	}
 }
 
-func ModelListToProjectList(projects []models.Project) []Project {
+func ModelListToProjectList(projects []entities.Project) []Project {
 	projectList := make([]Project, 0, len(projects))
 	for _, project := range projects {
 		projectList = append(projectList, *ModelToProject(&project))

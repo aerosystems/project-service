@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"firebase.google.com/go/v4/auth"
-	"github.com/aerosystems/project-service/internal/models"
+	"github.com/aerosystems/project-service/internal/entities"
 	"github.com/go-logrusutil/logrusutil/logctx"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -23,7 +23,7 @@ const (
 
 type User struct {
 	UUID uuid.UUID
-	Role models.Role
+	Role entities.Role
 }
 
 type FirebaseAuth struct {
@@ -36,7 +36,7 @@ func NewFirebaseAuth(client *auth.Client) *FirebaseAuth {
 	}
 }
 
-func (fa FirebaseAuth) RoleBasedAuth(roles ...models.Role) echo.MiddlewareFunc {
+func (fa FirebaseAuth) RoleBasedAuth(roles ...entities.Role) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx := c.Request().Context()
@@ -72,7 +72,7 @@ func (fa FirebaseAuth) RoleBasedAuth(roles ...models.Role) echo.MiddlewareFunc {
 				return echo.NewHTTPError(http.StatusForbidden, errMessageForbidden)
 			}
 
-			user.Role = models.RoleFromString(userRole)
+			user.Role = entities.RoleFromString(userRole)
 			if !isAccess(roles, user.Role) {
 				logger.WithField("token", jwt).Errorf("user role %s is not allowed to access. JWT: %s", user.Role, jwt)
 				return echo.NewHTTPError(http.StatusForbidden, errMessageForbidden)
@@ -94,7 +94,7 @@ func GetUserFromContext(ctx context.Context) (User, error) {
 	return user, nil
 }
 
-func isAccess(roles []models.Role, role models.Role) bool {
+func isAccess(roles []entities.Role, role entities.Role) bool {
 	for _, r := range roles {
 		if r == role {
 			return true
