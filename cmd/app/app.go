@@ -1,8 +1,8 @@
 package main
 
 import (
-	GRPCServer "github.com/aerosystems/project-service/internal/presenters/grpc"
-	"github.com/aerosystems/project-service/internal/presenters/http"
+	GRPCServer "github.com/aerosystems/project-service/internal/ports/grpc"
+	"github.com/aerosystems/project-service/internal/ports/http"
 	"github.com/sirupsen/logrus"
 )
 

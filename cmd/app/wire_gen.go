@@ -10,16 +10,14 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"firebase.google.com/go/v4/auth"
+	"github.com/aerosystems/common-service/logger"
+	"github.com/aerosystems/common-service/pkg/gcpclient"
+	"github.com/aerosystems/common-service/presenters/grpcserver"
+	"github.com/aerosystems/common-service/presenters/httpserver"
 	"github.com/aerosystems/project-service/internal/adapters"
-	"github.com/aerosystems/project-service/internal/common/config"
-	"github.com/aerosystems/project-service/internal/common/custom_errors"
-	"github.com/aerosystems/project-service/internal/common/protobuf/project"
-	"github.com/aerosystems/project-service/internal/presenters/grpc"
-	"github.com/aerosystems/project-service/internal/presenters/http"
+	"github.com/aerosystems/project-service/internal/ports/grpc"
+	"github.com/aerosystems/project-service/internal/ports/http"
 	"github.com/aerosystems/project-service/internal/usecases"
-	"github.com/aerosystems/project-service/pkg/gcp"
-	"github.com/aerosystems/project-service/pkg/logger"
-	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,25 +28,22 @@ func InitApp() *App {
 	logger := ProvideLogger()
 	logrusLogger := ProvideLogrusLogger(logger)
 	config := ProvideConfig()
-	httpErrorHandler := ProvideErrorHandler(config)
 	client := ProvideFirebaseAuthClient(config)
 	firebaseAuth := ProvideFirebaseAuthMiddleware(client)
-	baseHandler := ProvideBaseHandler(logrusLogger, config)
 	firestoreClient := ProvideFirestoreClient(config)
 	projectRepo := ProvideProjectRepo(firestoreClient)
 	subscriptionAdapter := ProvideSubscriptionAdapter(config)
 	projectUsecase := ProvideProjectUsecase(projectRepo, subscriptionAdapter)
-	projectHandler := ProvideProjectHandler(baseHandler, projectUsecase)
 	tokenUsecase := ProvideTokenUsecase(projectRepo)
-	tokenHandler := ProvideTokenHandler(baseHandler, tokenUsecase)
-	server := ProvideHTTPServer(config, logrusLogger, httpErrorHandler, firebaseAuth, projectHandler, tokenHandler)
-	grpcServerProjectHandler := ProvideGRPCHandlers(projectUsecase)
-	grpcServerServer := ProvideGRPCServer(config, logrusLogger, grpcServerProjectHandler)
+	handler := ProvideHandler(projectUsecase, tokenUsecase)
+	server := ProvideHTTPServer(config, logrusLogger, firebaseAuth, handler)
+	projectService := ProvideProjectService(projectUsecase)
+	grpcServerServer := ProvideGRPCServer(config, logrusLogger, projectService)
 	app := ProvideApp(logrusLogger, config, server, grpcServerServer)
 	return app
 }
 
-func ProvideApp(log *logrus.Logger, cfg *config.Config, httpServer *HTTPServer.Server, grpcServer *GRPCServer.Server) *App {
+func ProvideApp(log *logrus.Logger, cfg *Config, httpServer *HTTPServer.Server, grpcServer *GRPCServer.Server) *App {
 	app := NewApp(log, cfg, httpServer, grpcServer)
 	return app
 }
@@ -58,24 +53,14 @@ func ProvideLogger() *logger.Logger {
 	return loggerLogger
 }
 
-func ProvideConfig() *config.Config {
-	configConfig := config.NewConfig()
-	return configConfig
+func ProvideConfig() *Config {
+	config := NewConfig()
+	return config
 }
 
-func ProvideGRPCHandlers(projectUsecase GRPCServer.ProjectUsecase) *GRPCServer.ProjectHandler {
-	projectHandler := GRPCServer.NewProjectHandler(projectUsecase)
-	return projectHandler
-}
-
-func ProvideProjectHandler(baseHandler *HTTPServer.BaseHandler, projectUsecase HTTPServer.ProjectUsecase) *HTTPServer.ProjectHandler {
-	projectHandler := HTTPServer.NewProjectHandler(baseHandler, projectUsecase)
-	return projectHandler
-}
-
-func ProvideTokenHandler(baseHandler *HTTPServer.BaseHandler, tokenUsecase HTTPServer.TokenUsecase) *HTTPServer.TokenHandler {
-	tokenHandler := HTTPServer.NewTokenHandler(baseHandler, tokenUsecase)
-	return tokenHandler
+func ProvideHandler(projectUsecase HTTPServer.ProjectUsecase, tokenUsecase HTTPServer.TokenUsecase) *HTTPServer.Handler {
+	handler := HTTPServer.NewHandler(projectUsecase, tokenUsecase)
+	return handler
 }
 
 func ProvideProjectUsecase(projectRepo usecases.ProjectRepository, subscriptionAdapter usecases.SubscriptionAdapter) *usecases.ProjectUsecase {
@@ -95,25 +80,35 @@ func ProvideProjectRepo(client *firestore.Client) *adapters.ProjectRepo {
 
 // wire.go:
 
-func ProvideHTTPServer(cfg *config.Config, log *logrus.Logger, errorHandler *echo.HTTPErrorHandler, firebaseAuthMiddleware *HTTPServer.FirebaseAuth, projectHandler *HTTPServer.ProjectHandler, tokenHandler *HTTPServer.TokenHandler) *HTTPServer.Server {
-	return HTTPServer.NewServer(cfg.Port, log, errorHandler, firebaseAuthMiddleware, projectHandler, tokenHandler)
+func ProvideHTTPServer(cfg *Config, log *logrus.Logger, firebaseAuth *HTTPServer.FirebaseAuth, handler *HTTPServer.Handler) *HTTPServer.Server {
+	return HTTPServer.NewHTTPServer(&HTTPServer.Config{
+		Config: httpserver.Config{
+			Host: cfg.Host,
+			Port: cfg.Port,
+		},
+		Mode: cfg.Mode,
+	}, log, firebaseAuth, handler)
 }
 
-func ProvideGRPCServer(cfg *config.Config, log *logrus.Logger, grpcHandler project.ProjectServiceServer) *GRPCServer.Server {
-	return GRPCServer.NewGRPCServer(cfg.Port, log, grpcHandler)
+func ProvideGRPCServer(cfg *Config, log *logrus.Logger, projectService *GRPCServer.ProjectService) *GRPCServer.Server {
+	return GRPCServer.NewGRPCServer(&grpcserver.Config{Host: cfg.Host, Port: cfg.Port}, log, projectService)
 }
 
 func ProvideLogrusLogger(log *logger.Logger) *logrus.Logger {
 	return log.Logger
 }
 
-func ProvideBaseHandler(log *logrus.Logger, cfg *config.Config) *HTTPServer.BaseHandler {
-	return HTTPServer.NewBaseHandler(log, cfg.Mode)
-}
-
-func ProvideFirestoreClient(cfg *config.Config) *firestore.Client {
+func ProvideFirestoreClient(cfg *Config) *firestore.Client {
 	ctx := context.Background()
 	client, err := firestore.NewClient(ctx, cfg.GcpProjectId)
+	if err != nil {
+		panic(err)
+	}
+	return client
+}
+
+func ProvideFirebaseAuthClient(cfg *Config) *auth.Client {
+	client, err := gcpclient.NewFirebaseClient(cfg.GcpProjectId, cfg.GoogleApplicationCredentials)
 	if err != nil {
 		panic(err)
 	}
@@ -124,23 +119,14 @@ func ProvideFirebaseAuthMiddleware(client *auth.Client) *HTTPServer.FirebaseAuth
 	return HTTPServer.NewFirebaseAuth(client)
 }
 
-func ProvideFirebaseAuthClient(cfg *config.Config) *auth.Client {
-	app, err := gcp.NewFirebaseApp(cfg.GcpProjectId, cfg.GoogleApplicationCredentials)
-	if err != nil {
-		panic(err)
-	}
-	return app.Client
-}
-
-func ProvideErrorHandler(cfg *config.Config) *echo.HTTPErrorHandler {
-	errorHandler := CustomErrors.NewEchoErrorHandler(cfg.Mode)
-	return &errorHandler
-}
-
-func ProvideSubscriptionAdapter(cfg *config.Config) *adapters.SubscriptionAdapter {
+func ProvideSubscriptionAdapter(cfg *Config) *adapters.SubscriptionAdapter {
 	subscriptionAdapter, err := adapters.NewSubscriptionAdapter(cfg.SubscriptionServiceGRPCAddr)
 	if err != nil {
 		panic(err)
 	}
 	return subscriptionAdapter
+}
+
+func ProvideProjectService(projectUsecase GRPCServer.ProjectUsecase) *GRPCServer.ProjectService {
+	return GRPCServer.NewProjectService(projectUsecase)
 }

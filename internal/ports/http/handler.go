@@ -5,15 +5,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type ProjectHandler struct {
-	*BaseHandler
+type Handler struct {
 	projectUsecase ProjectUsecase
+	tokenUsecase   TokenUsecase
 }
 
-func NewProjectHandler(baseHandler *BaseHandler, projectUsecase ProjectUsecase) *ProjectHandler {
-	return &ProjectHandler{
-		BaseHandler:    baseHandler,
+func NewHandler(projectUsecase ProjectUsecase, tokenUsecase TokenUsecase) *Handler {
+	return &Handler{
 		projectUsecase: projectUsecase,
+		tokenUsecase:   tokenUsecase,
 	}
 }
 

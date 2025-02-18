@@ -1,7 +1,7 @@
 package HTTPServer
 
 import (
-	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
+	"github.com/aerosystems/project-service/internal/entities"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -27,7 +27,7 @@ type UpdateProjectRequest struct {
 // @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectUuid} [patch]
-func (ph ProjectHandler) UpdateProject(c echo.Context) error {
+func (h Handler) UpdateProject(c echo.Context) error {
 	user, err := GetUserFromContext(c.Request().Context())
 	if err != nil {
 		return err
@@ -35,14 +35,14 @@ func (ph ProjectHandler) UpdateProject(c echo.Context) error {
 
 	var requestPayload UpdateProjectRequest
 	if err = c.Bind(&requestPayload); err != nil {
-		return CustomErrors.ErrInvalidRequestBody
+		return entities.ErrInvalidRequestBody
 	}
-	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+	if err = h.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
 		return err
 	}
 
-	projectUUID := c.Param("projectId")
-	project, err := ph.projectUsecase.UpdateProject(c.Request().Context(), projectUUID, requestPayload.Name)
+	projectUUID := c.Param("project_uuid")
+	project, err := h.projectUsecase.UpdateProject(c.Request().Context(), projectUUID, requestPayload.Name)
 	if err != nil {
 		return err
 	}

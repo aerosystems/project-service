@@ -17,6 +17,8 @@ type ctxKey int
 const (
 	userContextKey ctxKey = iota
 
+	xAPIHeaderName = "X-Api-Key"
+
 	errMessageForbidden    = "access denied"
 	errMessageUnauthorized = "invalid token"
 )
@@ -121,4 +123,8 @@ func getTokenFromHeader(r *http.Request) (string, error) {
 		return "", errors.New("invalid token format")
 	}
 	return tokenParts[1], nil
+}
+
+func getAPIKeyFromContext(c echo.Context) string {
+	return c.Request().Header.Get(xAPIHeaderName)
 }

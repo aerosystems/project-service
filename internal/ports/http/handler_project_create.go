@@ -1,7 +1,7 @@
 package HTTPServer
 
 import (
-	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
+	"github.com/aerosystems/project-service/internal/entities"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -26,23 +26,23 @@ type CreateProjectRequest struct {
 // @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects [post]
-func (ph ProjectHandler) ProjectCreate(c echo.Context) error {
+func (h Handler) ProjectCreate(c echo.Context) error {
 	user, err := GetUserFromContext(c.Request().Context())
 	if err != nil {
 		return err
 	}
 	var requestPayload CreateProjectRequest
 	if err = c.Bind(&requestPayload); err != nil {
-		return CustomErrors.ErrInvalidRequestBody
+		return entities.ErrInvalidRequestBody
 	}
-	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+	if err = h.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
 		return err
 	}
 	userUuid, err := uuid.Parse(requestPayload.UserUuid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "user uuid is incorrect")
 	}
-	project, err := ph.projectUsecase.CreateProject(c.Request().Context(), userUuid, requestPayload.Name)
+	project, err := h.projectUsecase.CreateProject(c.Request().Context(), userUuid, requestPayload.Name)
 	if err != nil {
 		return err
 	}

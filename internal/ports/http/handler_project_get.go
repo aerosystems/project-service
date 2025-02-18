@@ -1,7 +1,7 @@
 package HTTPServer
 
 import (
-	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
+	"github.com/aerosystems/project-service/internal/entities"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -22,18 +22,18 @@ import (
 // @Failure 422 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects/{projectUuid} [get]
-func (ph ProjectHandler) GetProject(c echo.Context) error {
+func (h Handler) GetProject(c echo.Context) error {
 	user, err := GetUserFromContext(c.Request().Context())
 	if err != nil {
 		return err
 	}
 
-	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+	if err = h.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
 		return err
 	}
 
-	projectUUID := c.Param("projectId")
-	project, err := ph.projectUsecase.GetProjectByUuid(c.Request().Context(), projectUUID)
+	projectUUID := c.Param("project_uuid")
+	project, err := h.projectUsecase.GetProjectByUuid(c.Request().Context(), projectUUID)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (ph ProjectHandler) GetProject(c echo.Context) error {
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /v1/projects [get]
-func (ph ProjectHandler) GetProjectList(c echo.Context) (err error) {
+func (h Handler) GetProjectList(c echo.Context) (err error) {
 	user, err := GetUserFromContext(c.Request().Context())
 	if err != nil {
 		return err
@@ -62,15 +62,15 @@ func (ph ProjectHandler) GetProjectList(c echo.Context) (err error) {
 	if len(c.QueryParam("userUuid")) != 0 {
 		filteredUserUUID, err = uuid.Parse(c.QueryParam("userUuid"))
 		if err != nil {
-			return CustomErrors.ErrProjectUuidInvalid
+			return entities.ErrProjectUuidInvalid
 		}
 	}
 
-	if err = ph.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
+	if err = h.projectUsecase.DetermineStrategy(c.Request().Context(), user.UUID, user.Role); err != nil {
 		return err
 	}
 
-	projectList, err := ph.projectUsecase.GetProjectListByCustomerUuid(c.Request().Context(), user.UUID, filteredUserUUID)
+	projectList, err := h.projectUsecase.GetProjectListByCustomerUuid(c.Request().Context(), user.UUID, filteredUserUUID)
 	if err != nil {
 		return err
 	}
