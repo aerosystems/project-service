@@ -46,8 +46,8 @@ github.com/PuerkitoBio/purell v1.1.1 h1:WEQqlqaGbrPkxLJWfBwQmfEAE1Z7ONdDLqrN38tN
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV/sSk/8dngufqelfh6jnri85riMAaF/M=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
-github.com/aerosystems/common-service v0.0.7 h1:9q4jM6HXyGjEX47w6xvsu4dLBUhqtrQhP+bRcklYH38=
-github.com/aerosystems/common-service v0.0.7/go.mod h1:J2kC9/jG9/qtsCe2DpZ9wL3mo0FpULAL8sLYoLKtcQg=
+github.com/aerosystems/common-service v0.0.10 h1:dx3Y2SS/B1X0d1OMVskbBB/slAMF/FZQvkF+XOwOB6c=
+github.com/aerosystems/common-service v0.0.10/go.mod h1:J2kC9/jG9/qtsCe2DpZ9wL3mo0FpULAL8sLYoLKtcQg=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

@@ -18,7 +18,6 @@ type Config struct {
 	GcpProjectId                 string
 	GoogleApplicationCredentials string
 	SubscriptionServiceGRPCAddr  string
-	CheckmailServiceGRPCAddr     string
 }
 
 func NewConfig() *Config {
@@ -35,6 +34,5 @@ func NewConfig() *Config {
 		GcpProjectId:                 viper.GetString("GCP_PROJECT_ID"),
 		GoogleApplicationCredentials: viper.GetString("GOOGLE_APPLICATION_CREDENTIALS"),
 		SubscriptionServiceGRPCAddr:  viper.GetString("SBS_SERVICE_GRPC_ADDR"),
-		CheckmailServiceGRPCAddr:     viper.GetString("CHKML_SERVICE_GRPC_ADDR"),
 	}
 }

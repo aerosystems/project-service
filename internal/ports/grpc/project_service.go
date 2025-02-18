@@ -24,7 +24,8 @@ func (ps ProjectService) CreateDefaultProject(ctx context.Context, req *project.
 		return nil, err
 	}
 	return &project.CreateDefaultProjectResponse{
-		ProjectUuid: defaultProject.Uuid.String(),
+		ProjectUuid:  defaultProject.Uuid.String(),
+		ProjectToken: defaultProject.Token,
 	}, nil
 }
 
