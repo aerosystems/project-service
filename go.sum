@@ -48,6 +48,8 @@ github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 h1:d+Bc7a5rLufV
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/aerosystems/common-service v0.0.10 h1:dx3Y2SS/B1X0d1OMVskbBB/slAMF/FZQvkF+XOwOB6c=
 github.com/aerosystems/common-service v0.0.10/go.mod h1:J2kC9/jG9/qtsCe2DpZ9wL3mo0FpULAL8sLYoLKtcQg=
+github.com/aerosystems/common-service v0.0.12 h1:ymJtLOOjUcP30xygQEidlzjLcVKC5aFB3p7Grk2d0po=
+github.com/aerosystems/common-service v0.0.12/go.mod h1:J2kC9/jG9/qtsCe2DpZ9wL3mo0FpULAL8sLYoLKtcQg=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
