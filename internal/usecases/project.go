@@ -3,10 +3,8 @@ package usecases
 import (
 	"context"
 	"errors"
-	CustomErrors "github.com/aerosystems/project-service/internal/common/custom_errors"
-	"github.com/aerosystems/project-service/internal/models"
+	"github.com/aerosystems/project-service/internal/entities"
 	"github.com/google/uuid"
-	"time"
 )
 
 const (
@@ -15,49 +13,49 @@ const (
 
 type ProjectUsecase struct {
 	projectRepo            ProjectRepository
-	subsRepo               SubsRepository
+	subscriptionAdapter    SubscriptionAdapter
 	checkmailEventsAdapter CheckmailEventsAdapter
 	strategy               Strategy
 }
 
-func NewProjectUsecase(projectRepo ProjectRepository) *ProjectUsecase {
+func NewProjectUsecase(projectRepo ProjectRepository, subscriptionAdapter SubscriptionAdapter) *ProjectUsecase {
 	return &ProjectUsecase{
-		projectRepo: projectRepo,
+		projectRepo:         projectRepo,
+		subscriptionAdapter: subscriptionAdapter,
 	}
 }
 
-func (ps *ProjectUsecase) DetermineStrategy(customerUuidStr string, role string) error {
-	customerUuid, err := uuid.Parse(customerUuidStr)
-	if err != nil {
-		return err
-	}
-	if role == models.StaffRole.String() {
-		ps.SetStrategy(&StaffStrategy{customerUuid})
+func (ps *ProjectUsecase) SetStrategy(strategy Strategy) {
+	ps.strategy = strategy
+}
+
+func (ps *ProjectUsecase) DetermineStrategy(ctx context.Context, userUUID uuid.UUID, role entities.Role) error {
+	if role == entities.StaffRole {
+		ps.SetStrategy(&StaffStrategy{userUUID})
 		return nil
 	}
-	kind, _, err := ps.subsRepo.GetSubscription(customerUuid)
+	kind, _, err := ps.subscriptionAdapter.GetSubscription(context.TODO(), userUUID)
 	if err != nil {
 		return err
 	}
 	switch kind {
-	case models.TrialSubscription:
+	case entities.TrialSubscription:
 		fallthrough
-	case models.StartupSubscription:
-		ps.SetStrategy(&StartupStrategy{customerUuid})
-	case models.BusinessSubscription:
-		ps.SetStrategy(&BusinessStrategy{customerUuid})
+	case entities.StartupSubscription:
+		ps.SetStrategy(&StartupStrategy{userUUID})
+	case entities.BusinessSubscription:
+		ps.SetStrategy(&BusinessStrategy{userUUID})
 	default:
-		return errors.New("unknown subscription kind")
+		return entities.ErrForbidden
 	}
 	return nil
 }
 
-func (ps *ProjectUsecase) GetProjectByUuid(projectUuidStr string) (*models.Project, error) {
+func (ps *ProjectUsecase) GetProjectByUuid(ctx context.Context, projectUuidStr string) (*entities.Project, error) {
 	projectUuid, err := uuid.Parse(projectUuidStr)
 	if err != nil {
-		return nil, CustomErrors.ErrProjectUuidInvalid
+		return nil, entities.ErrProjectUuidInvalid
 	}
-	ctx := context.Background()
 	project, err := ps.projectRepo.GetByUuid(ctx, projectUuid)
 	if err != nil {
 		return nil, err
@@ -68,8 +66,7 @@ func (ps *ProjectUsecase) GetProjectByUuid(projectUuidStr string) (*models.Proje
 	return project, nil
 }
 
-func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, error) {
-	ctx := context.Background()
+func (ps *ProjectUsecase) GetProjectByToken(ctx context.Context, token string) (*entities.Project, error) {
 	project, err := ps.projectRepo.GetByToken(ctx, token)
 	if err != nil {
 		return nil, err
@@ -81,89 +78,58 @@ func (ps *ProjectUsecase) GetProjectByToken(token string) (*models.Project, erro
 	return project, nil
 }
 
-func (ps *ProjectUsecase) GetProjectListByCustomerUuid(customerUuid, filterUserUuid uuid.UUID) (projectList []models.Project, err error) {
+func (ps *ProjectUsecase) GetProjectListByCustomerUuid(ctx context.Context, customerUuid, filterUserUuid uuid.UUID) (projectList []entities.Project, err error) {
 	if filterUserUuid != uuid.Nil {
 		if !ps.strategy.IsAccessibleByCustomerUuid(filterUserUuid) {
-			return []models.Project{}, nil
+			return []entities.Project{}, nil
 		}
-		ctx := context.Background()
 		projectList, err = ps.projectRepo.GetByCustomerUuid(ctx, filterUserUuid)
 	}
-	ctx := context.Background()
 	projectList, err = ps.projectRepo.GetByCustomerUuid(ctx, customerUuid)
 	return projectList, nil
 }
 
-func (ps *ProjectUsecase) CreateDefaultProject(customerUuid uuid.UUID) (*models.Project, error) {
+func (ps *ProjectUsecase) CreateDefaultProject(ctx context.Context, customerUuid uuid.UUID) (*entities.Project, error) {
 	ps.SetStrategy(&ServiceStrategy{})
-	project, err := ps.projectRepo.GetByCustomerUuidAndName(context.Background(), customerUuid, defaultProjectName)
-	if err != nil {
-		return nil, err
-	}
-	if project == nil {
-		return ps.CreateProject(customerUuid, defaultProjectName)
-	}
-	return project, nil
-}
-
-func (ps *ProjectUsecase) InitProject(customerUuidStr string, subscriptionType string, accessTime time.Time) (*models.Project, error) {
-	customerUuid, err := uuid.Parse(customerUuidStr)
-	if err != nil {
-		return nil, CustomErrors.ErrProjectUuidInvalid
-	}
-
-	ctx := context.Background()
-	if defaultCustomerProject, err := ps.projectRepo.GetByCustomerUuidAndName(ctx, customerUuid, defaultProjectName); err == nil && defaultCustomerProject != nil {
-		return nil, CustomErrors.ErrProjectAlreadyExists
-	}
-
-	newDefaultProject := models.NewProject(customerUuid, defaultProjectName)
-	if err = ps.projectRepo.Create(ctx, newDefaultProject); err != nil {
-		return nil, err
-	}
-
 	project, err := ps.projectRepo.GetByCustomerUuidAndName(ctx, customerUuid, defaultProjectName)
 	if err != nil {
 		return nil, err
 	}
-	if err = ps.checkmailEventsAdapter.PublishCreateAccessEvent(project.Token, subscriptionType, accessTime); err != nil {
-		return nil, err
+	if project == nil {
+		return ps.CreateProject(ctx, customerUuid, defaultProjectName)
 	}
 	return project, nil
 }
 
-func (ps *ProjectUsecase) CreateProject(customerUuid uuid.UUID, name string) (*models.Project, error) {
-	ctx := context.Background()
+func (ps *ProjectUsecase) CreateProject(ctx context.Context, customerUuid uuid.UUID, name string) (*entities.Project, error) {
 	projectList, err := ps.projectRepo.GetByCustomerUuid(ctx, customerUuid)
 	if err != nil {
 		return nil, err
 	}
 	if ps.isProjectNameExist(name, projectList) {
-		return nil, CustomErrors.ErrProjectNameExists
+		return nil, entities.ErrProjectNameExists
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(customerUuid) {
-		return nil, CustomErrors.ErrForbidden
+		return nil, entities.ErrForbidden
 	}
 	if !ps.strategy.IsAccessibleByCountProjects(len(projectList)) {
-		return nil, CustomErrors.ErrProjectLimitExceeded
+		return nil, entities.ErrProjectLimitExceeded
 	}
-	project := models.NewProject(customerUuid, name)
-	ctx = context.Background()
+	project := entities.NewProject(customerUuid, name)
 	if err = ps.projectRepo.Create(ctx, project); err != nil {
 		return nil, err
 	}
 	return project, nil
 }
 
-func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) (*models.Project, error) {
-	project, err := ps.GetProjectByUuid(projectUuidStr)
+func (ps *ProjectUsecase) UpdateProject(ctx context.Context, projectUuidStr, projectName string) (*entities.Project, error) {
+	project, err := ps.GetProjectByUuid(ctx, projectUuidStr)
 	if err != nil {
 		return nil, err
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUUID) {
-		return nil, CustomErrors.ErrForbidden
+		return nil, entities.ErrForbidden
 	}
-	ctx := context.Background()
 	project.Name = projectName
 	if err = ps.projectRepo.Update(ctx, project); err != nil {
 		return nil, err
@@ -171,28 +137,25 @@ func (ps *ProjectUsecase) UpdateProject(projectUuidStr, projectName string) (*mo
 	return project, nil
 }
 
-func (ps *ProjectUsecase) DeleteProject(projectUuidStr string) error {
+func (ps *ProjectUsecase) DeleteProject(ctx context.Context, projectUuidStr string) error {
 	projectUuid, err := uuid.Parse(projectUuidStr)
 	if err != nil {
-		return CustomErrors.ErrProjectUuidInvalid
+		return entities.ErrProjectUuidInvalid
 	}
-	ctx := context.Background()
 	project, err := ps.projectRepo.GetByUuid(ctx, projectUuid)
 	if err != nil {
 		return err
 	}
 	if !ps.strategy.IsAccessibleByCustomerUuid(project.CustomerUUID) {
-		return CustomErrors.ErrForbidden
+		return entities.ErrForbidden
 	}
-	ctx = context.Background()
 	if err = ps.projectRepo.Delete(ctx, project); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ps *ProjectUsecase) IsProjectExistByToken(projectToken string) bool {
-	ctx := context.Background()
+func (ps *ProjectUsecase) IsProjectExistByToken(ctx context.Context, projectToken string) bool {
 	project, err := ps.projectRepo.GetByToken(ctx, projectToken)
 	if err != nil {
 		return false
@@ -203,11 +166,7 @@ func (ps *ProjectUsecase) IsProjectExistByToken(projectToken string) bool {
 	return true
 }
 
-func (ps *ProjectUsecase) SetStrategy(strategy Strategy) {
-	ps.strategy = strategy
-}
-
-func (ps *ProjectUsecase) isProjectNameExist(name string, projectList []models.Project) bool {
+func (ps *ProjectUsecase) isProjectNameExist(name string, projectList []entities.Project) bool {
 	for _, project := range projectList {
 		if project.Name == name {
 			return true

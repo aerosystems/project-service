@@ -37,14 +37,8 @@ spec:
               value: grpc
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /app/secret/verifire-60d1b-3a7b22c9842d
-            - name: PRJCT_SUBS_SERVICE_RPC_ADDR
-              value: subscription-service:5001
-            - name: PRJCT_CHECKMAIL_TOPIC_ID
-              value: checkmail-topic
-            - name: PRJCT_CHECKMAIL_SUB_NAME
-              value: checkmail-sub
-            - name: PRJCT_CHECKMAIL_CREATE_ACCESS_ENDPOINT
-              value: http://checkmail-service:8080/v1/access
+            - name: SBS_SERVICE_GRPC_ADDR
+              value: subscription-service-grpc-244108678816.europe-west1.run.app:443
           resources:
             limits:
               cpu: 1000m
