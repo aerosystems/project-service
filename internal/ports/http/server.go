@@ -32,6 +32,11 @@ func NewHTTPServer(
 
 			httpserver.WithValidator(httpserver.NewCustomValidator()),
 
+			httpserver.WithMiddleware(middleware.CORSWithConfig(middleware.CORSConfig{
+				Skipper:      middleware.DefaultSkipper,
+				AllowOrigins: []string{"*"},
+				AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions},
+			})),
 			httpserver.WithMiddleware(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 				LogURI:    true,
 				LogStatus: true,
